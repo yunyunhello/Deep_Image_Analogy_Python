@@ -1,8 +1,8 @@
-import DeepAnalygy
+import DeepAnalogy
 import sys
 
 
-dp=DeepAnalygy
+dp=DeepAnalogy.DeepAnalogy()
 
 if(len(sys.argv)!=9):
 	model="models/"
@@ -10,7 +10,7 @@ if(len(sys.argv)!=9):
 	A="demo/content.png"
 	BP="demo/style.png"
 	output="demo/output/"
-	
+
 	dp.SetModel(model)
 	dp.SetA(A)
 	dp.SetBPrime(BP)
@@ -22,18 +22,18 @@ if(len(sys.argv)!=9):
 	dp.LoadInputs()
 	#dp.ComputeAnn()
 
+else:
+	dp.SetModel(sys.argv[1])
+	dp.SetA(argv[2])
+	dp.SetBPrime(argv[3])
+	dp.SetOutputDir(argv[4])
+	dp.SetGPU(atoi(argv[5]))
+	dp.SetRatio(atof(argv[6]))
+	dp.SetBlendWeight(atoi(argv[7]))
+	if (atoi(argv[8]) == 1):
+		dp.UsePhotoTransfer(True)
 	else:
-		dp.SetModel(sys.argv[1])
-		dp.SetA(argv[2])
-		dp.SetBPrime(argv[3])
-		dp.SetOutputDir(argv[4])
-		dp.SetGPU(atoi(argv[5]))
-		dp.SetRatio(atof(argv[6]))
-		dp.SetBlendWeight(atoi(argv[7]))
-		if (atoi(argv[8]) == 1):
-			dp.UsePhotoTransfer(True)
-		else:
-			dp.UsePhotoTransfer(False)
-		dp.LoadInputs()
+		dp.UsePhotoTransfer(False)
+	#	dp.LoadInputs()
 		#dp.ComputeAnn()
 

@@ -16,7 +16,7 @@ class parameters:
 class DeepAnalogy:
 	#Construction Method
 	def __init__(self):
-		sefl.__resizeRatio=1
+		self.__resizeRatio=1
 		self.__weightLevel = 3
 		self.__photoTransfer = False
 		self.__file_A = ""
@@ -39,8 +39,7 @@ class DeepAnalogy:
 		self.__path_model =path
 	
 	def SetA(self, f_a):
-		self.__file_A=f_a
-		
+		self.__file_A=f_a	
 	def SetBPrime(self, f_bp):
 		self.__file_BP = f_bp
 	
@@ -49,17 +48,18 @@ class DeepAnalogy:
 	
 	#???
 	def SetGPU(self, no):
-		if(no!=0)
+		if(no!=0):
 			cuda.Device(no).make_context()
 		
 	def LoadInputs(self):
-		ori_AL=imread(file_A)
-		ori_BPL=imread(file_BP)
-		if(ori_AL.empty()||ori_BPL.empty()):
+		ori_AL=cv2.imread(self.__file_A)
+		ori_BPL=cv2.imread(self.__file_BP)
+		if ori_AL is None or ori_BPL is None:
 			print "image cannot read!"
-		
-		self.__ori_A_cols=ori_AL.cols
-		self.__ori_A_rows=ori_AL.rows
-		self.__ori_BP_cols=ori_BPL.cols
-		self.__ori_BP_rows=ori_BPL.rows
-	
+		else:
+			self.__ori_A_cols=ori_AL.shape[1]
+			self.__ori_A_rows=ori_AL.shape[0]
+			self.__ori_BP_cols=ori_BPL.shape[1]
+			self.__ori_BP_rows=ori_BPL.shape[0]
+#			print ori_AL.shape
+

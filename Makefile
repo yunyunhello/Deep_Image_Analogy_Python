@@ -320,6 +320,7 @@ ifeq ($(DEBUG), 1)
 	NVCCFLAGS += -G
 else
 	COMMON_FLAGS += -DNDEBUG -O2
+	NVCCFLAGS += -G
 endif
 
 # cuDNN acceleration configuration.
