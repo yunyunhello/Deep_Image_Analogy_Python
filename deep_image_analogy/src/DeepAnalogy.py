@@ -5,6 +5,7 @@ from pycuda.compiler import SourceModule
 from pycuda.tools import make_default_context
 import cv2
 import math
+import Classifier
 
 class parameters:
 	def __init__(self):
@@ -151,7 +152,7 @@ class DeepAnalogy:
 		#???
 		param_size=8
 		
-		Parameters params
+		params=parameters()
 		params.layers.append("conv5_1")
 		params.layers.append("conv4_1")
 		params.layers.append("conv3_1")
@@ -166,12 +167,12 @@ class DeepAnalogy:
 			weight.append(0.6)
 			weight.append(0.5)
 			weight.append(0.0)
-		elif:
+		elif __weightLevel==2:
 			weight.append(0.8)
 			weight.append(0.7)
 			weight.append(0.6)
 			weight.append(0.1)
-		elif:
+		elif __weightLevel==3:
 			weight.append(0.9)
 			weight.append(0.8)
 			weight.append(0.7)
@@ -214,11 +215,11 @@ class DeepAnalogy:
 		
 		#load caffe
 		#???
-		::google::InitGoogleLogging("deepanalogy")
+		#::google::InitGoogleLogging("deepanalogy")
 		model_file = "vgg19/VGG_ILSVRC_19_layers_deploy.prototxt"
 		trained_file = "vgg19/VGG_ILSVRC_19_layers.caffemodel"
 		
-		Classifier classifier_A(self.__path_model + model_file, self.__path_model + trained_file)
+		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 			
 			
 		

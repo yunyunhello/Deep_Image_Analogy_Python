@@ -12,7 +12,7 @@ def __init__(self,model_file,trained_file):
 	#Load the network
 	net_=caffe.Net(model_file, trained_file, caffe.TEST)
 	#???
-	pint net_.blobs['data'].data.shape 
+	print net_.blobs['data'].data.shape 
 	#log.check_eq(len(net_.inputs),1,"Network should have exactly one input.")
 	#log.check_eq(len(net_.outputs),1,"Network should have exactly one output.")
 	#print "the number of blobs in the input layer: %d" % len(net_.data['data'])
