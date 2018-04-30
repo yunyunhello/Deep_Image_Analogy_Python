@@ -141,11 +141,11 @@ class DeepAnalogy:
 			print "The input image B prime has been resized to %d x %d.\n" % (cur_BP_cols,cur_BP_rows)
 		
 		#???
-		img_AL=cv2.resize(ori_AL, None, fx=float(cur_A_cols)/ori_AL.shape[1],fy=float(cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
-		img_BPL=cv2.resize(ori_AL, None, fx=float(cur_BP_cols)/ori_BPL.shape[1],fy=float(cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
+		self.__img_AL=cv2.resize(ori_AL, None, fx=float(cur_A_cols)/ori_AL.shape[1],fy=float(cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
+		self.__img_BPL=cv2.resize(ori_AL, None, fx=float(cur_BP_cols)/ori_BPL.shape[1],fy=float(cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
 		
 	def ComputeAnn(self):
-		if img_BPL is None or img_AL is None:
+		if self.__img_BPL is None or self.__img_AL is None:
 			cv2.waitKey(0)
 			sys.exit()
 			
@@ -162,17 +162,17 @@ class DeepAnalogy:
 		
 		weight=[]
 		weight.append(1.0)
-		if __weightLevel==1:
+		if self.__weightLevel==1:
 			weight.append(0.7)
 			weight.append(0.6)
 			weight.append(0.5)
 			weight.append(0.0)
-		elif __weightLevel==2:
+		elif self.__weightLevel==2:
 			weight.append(0.8)
 			weight.append(0.7)
 			weight.append(0.6)
 			weight.append(0.1)
-		elif __weightLevel==3:
+		elif self.__weightLevel==3:
 			weight.append(0.9)
 			weight.append(0.8)
 			weight.append(0.7)
@@ -196,9 +196,9 @@ class DeepAnalogy:
 		params.iter=10
 		
 		#scale and enhance
-		ratio=__resizeRatio
-		img_A=cv2.resize(img_AL, None, ratio, ratio,interpolation=cv2.INTER_CUBIC)
-		img_BP=cv2.resize(img_BPL, None, ratio, ratio,interpolation=cv2.INTER_CUBIC)
+		ratio=self.__resizeRatio
+		img_A=cv2.resize(self.__img_AL, None, fx=ratio, fy=ratio,interpolation=cv2.INTER_CUBIC)
+		img_BP=cv2.resize(self.__img_BPL, None, fx=ratio, fy=ratio,interpolation=cv2.INTER_CUBIC)
 		
 		#???
 		range=[]

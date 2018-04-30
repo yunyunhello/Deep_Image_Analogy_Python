@@ -24,7 +24,7 @@ if(len(sys.argv)!=9):
 	dp.SetBlendWeight(2)
 	dp.UsePhotoTransfer(False)
 	dp.LoadInputs()
-	#dp.ComputeAnn()
+	dp.ComputeAnn()
 
 else:
 	dp.SetModel(sys.argv[1])
