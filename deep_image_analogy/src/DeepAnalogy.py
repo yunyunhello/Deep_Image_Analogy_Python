@@ -220,6 +220,8 @@ class DeepAnalogy:
 		trained_file = "vgg19/VGG_ILSVRC_19_layers.caffemodel"
 		
 		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
-			
+		#classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
+		
+		classifier_A.Predict(img_A,)	
 			
 		
