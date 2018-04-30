@@ -15,7 +15,9 @@ class Classifier:
 		#???
 		print "Enter Clssifier.py\n"
 		print net_.blobs['data'].data.shape 
-		#log.check_eq(len(net_.inputs),1,"Network should have exactly one input.")
-		#log.check_eq(len(net_.outputs),1,"Network should have exactly one output.")
-		#print "the number of blobs in the input layer: %d" % len(net_.data['data'])
-		#input_layer=self.inputs[0]
+		log.check_eq(len(net_.inputs),1,"Network should have exactly one input.")
+		log.check_eq(len(net_.outputs),1,"Network should have exactly one output.")
+		log.check(net_.blobs['data'].channels==3 or net_.blobs['data'].channels==1, "Input layer should have 1 or 3 channels.")
+		#???
+		self.mean_=[103.939, 116.779, 123.68]
+		#print type(self.mean_)
