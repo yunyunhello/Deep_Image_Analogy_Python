@@ -18,6 +18,7 @@ class Classifier:
 		#???
 		print "Enter Clssifier.py\n"
 		print net_.blobs['data'].data.shape #(1,3,224,224)
+		print net_.inputs.shape
 		log.check_eq(len(net_.inputs),1,"Network should have exactly one input.")
 		log.check_eq(len(net_.outputs),1,"Network should have exactly one output.")
 		self.num_channels_=net_.blobs['data'].shape[1]
@@ -34,5 +35,28 @@ class Classifier:
 		
 		input_layer=net_.blobs['data']
 		input_layer.reshape(1,self.num_channels_,input_geometry_.height,input_geometry_.width)
-                print input_layer.data.shape
+        print "net_.blobs['data'].data.shape:"
+		print input_layer.data.shape
+		
+		#Forward dimension change to all layers.
+		net_.reshape()
+		
+		input_channels=[]
+		WrapInputLayer(input_channels)
+		#Preprocess(img,input_channels)
+	
+
+	"""Wrap the input layer of the network in separate np.ndarray(one per channel). This way we save 
+	one memcpy operation and we don't need to rely on cudaMemcpy2D. The last preprocessing operation 
+	will write the separate channels directly to the input layer."""	
+	def WrapInputLayer(input_channels):
+		
+		input_layer=net_.inputs[0]
+		width = input_layer.shape[3]
+		height= input_layer.shape[2]
+		input_data= input_layer.data
+		print("The type of input data: ")
+		print type(input_data)
+		#for(i=0;i<input_layer.shape[1],i++)
+		#channel=np.zeros((height,width),dtype="float32")
 			

@@ -222,6 +222,6 @@ class DeepAnalogy:
 		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		#classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		
-		classifier_A.Predict(img_A,)	
+		classifier_A.Predict(img_A, 0, 0, 0, 0)	
 			
 		
