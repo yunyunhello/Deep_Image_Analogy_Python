@@ -35,7 +35,8 @@ class Classifier:
 		self.input_geometry_.height=img.shape[0]
 		
 		input_layer=self.net_.blobs['data']
-		#print input_layer
+		print "net_.blobs['data'].shape:"
+		print input_layer.shape #<caffe._caffe.IntVec object at 0x7f4c3fa45f50>
 		input_layer.reshape(1,self.num_channels_,self.input_geometry_.height,self.input_geometry_.width)
 	        print "net_.blobs['data'].data.shape:" 
 		print input_layer.data.shape #(1, 3, 256, 342)
@@ -53,15 +54,15 @@ class Classifier:
 	will write the separate channels directly to the input layer."""	
 	def WrapInputLayer(self,input_channels):
 		
-		input_layer=self.net_.blobs['data'].data #blob类型
+		input_layer=self.net_.blobs['data'].data #blob???
 		print "The type of  net_.blobs['data']:"
-		print type(self.net_.blobs['data']) #？？？字典类型？？？
-		print type(self.net_.blobs['data'].data) #？？？blob类型？？？
+		print type(self.net_.blobs['data']) #<class 'caffe._caffe.Blob'>
+		print type(self.net_.blobs['data'].data) #<type 'numpy.ndarray'>
 		width = input_layer.shape[3]
 		height= input_layer.shape[2]
-		input_data= input_layer.data #？？？mutable_cpuu_data？？？
+		input_data= input_layer.data #???mutable_cpu_type???<type 'numpy.ndarray'>
 		print "The type of input_data: "
-		print type(input_data) #??? Type:numpy.ndarray
+		print type(input_data) #??? <type 'numpy.ndarray'>
 		#for(i=0;i<input_layer.shape[1],i++)
 			#channel=np.ndaaray(shape=(height,width),dtype="float32")
 			
