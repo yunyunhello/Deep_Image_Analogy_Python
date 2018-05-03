@@ -53,12 +53,15 @@ class Classifier:
 	will write the separate channels directly to the input layer."""	
 	def WrapInputLayer(self,input_channels):
 		
-		input_layer=self.net_.blobs['data']
+		input_layer=self.net_.blobs['data'].data #blob类型
+		print "The type of  net_.blobs['data']:"
+		print type(self.net_.blobs['data']) #？？？字典类型？？？
+		print type(self.net_.blobs['data'].data) #？？？blob类型？？？
 		width = input_layer.shape[3]
 		height= input_layer.shape[2]
-		input_data= input_layer.data
-		print("The type of input data: ")
-		print type(input_data) #Type:numpy.ndarray
+		input_data= input_layer.data #？？？mutable_cpuu_data？？？
+		print "The type of input_data: "
+		print type(input_data) #??? Type:numpy.ndarray
 		#for(i=0;i<input_layer.shape[1],i++)
-		#channel=np.zeros((height,width),dtype="float32")
+			#channel=np.ndaaray(shape=(height,width),dtype="float32")
 			
