@@ -44,17 +44,16 @@ class Classifier:
 		#Forward dimension change to all layers.
 		self.net_.reshape()
 		
-		input_channels=[]
-		self.WrapInputLayer(input_channels)
-		#Preprocess(img,input_channels)
+		#self.WrapInputLayer(input_channels)
+		self.Preprocess(img)
 	
 
 	"""Wrap the input layer of the network in separate np.ndarray(one per channel). This way we save 
 	one memcpy operation and we don't need to rely on cudaMemcpy2D. The last preprocessing operation 
 	will write the separate channels directly to the input layer."""	
-	def WrapInputLayer(self,input_channels):
+"""	def WrapInputLayer(self,input_channels):
 		
-		input_layer=self.net_.blobs['data'].data #blob???
+		input_layer=self.net_.blobs['data'] #blob???
 		print "The type of  net_.blobs['data']:"
 		print type(self.net_.blobs['data']) #<class 'caffe._caffe.Blob'>
 		print type(self.net_.blobs['data'].data) #<type 'numpy.ndarray'>
@@ -67,9 +66,10 @@ class Classifier:
 		print type(input_data) #??? <type 'numpy.ndarray'>
 		for(i=0;i<input_layer.shape[1],i++)
 			channel=input_data[1,i,:,:]
-			input_channels.append(channel)
+			input_channels.append(channel)"""
 			
-	def Preprocess(self, img, input_channels):
+	#def Preprocess(self, img, input_channels):
+	def Preprocess(self, img):
 		# Convert the input image to the input image format of the network. 
 		if img.shape[1]==3 and self.num_channels_==1:
 			sample=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -91,10 +91,15 @@ class Classifier:
 		
 		#This operation will write the separate BGR planes directly to the input layer 
 		#of the network because it is wrapped by the numpy.ndarray in input_channels.
-		input_channels=cv2.split(sample_normalized)
+		input_layer=self.net_.blobs['data']
+		input_data= input_layer.data
+		for i in range(self.num_channels):
+			input_data[1,i,:,:]=sample_normalized[i,:,:]
+	"""	for i in range(len(input_channels)):
+			input_channels[i]=sample_normalized[i,:,:]
 		print type(input_channels)
 		print type(input_channels[0].shape)
 		
-		print input_channels is self.net_blobs['data'].data
-		log.check(input_channels is self.net_blobs['data'].data, "Input channels are not wrapping the input layer of the network.")
+		print input_channels is self.net_blobs['data'].data 
+		log.check(input_channels is self.net_blobs['data'].data, "Input channels are not wrapping the input layer of the network.") """
 		
