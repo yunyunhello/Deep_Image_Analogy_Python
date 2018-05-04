@@ -45,31 +45,22 @@ class Classifier:
 		#Forward dimension change to all layers.
 		self.net_.reshape()
 		
-		#self.WrapInputLayer(input_channels)
 		self.Preprocess(img)
+		
+		self.net_.Forward()
+		
+		print self.net_._blob_names
+		print self.net_._layer_names
+		#for i in range(len(layers)):
+			
+		
+		
 	
 
 	"""Wrap the input layer of the network in separate np.ndarray(one per channel). This way we save 
 	one memcpy operation and we don't need to rely on cudaMemcpy2D. The last preprocessing operation 
 	will write the separate channels directly to the input layer."""	
-	def WrapInputLayer(self,input_channels):
-	
-		input_layer=self.net_.blobs['data'] #blob???
-		print "The type of  net_.blobs['data']:"
-		print type(self.net_.blobs['data']) #<class 'caffe._caffe.Blob'>
-		print type(self.net_.blobs['data'].data) #<type 'numpy.ndarray'>
-		width = input_layer.shape[3]
-		height= input_layer.shape[2]
-		print "width: %d" % width #
-		print "height: %d" % height #
-		input_data= input_layer.data #???mutable_cpu_type???<type 'numpy.ndarray'>
-		print "The type of input_data: "
-		print type(input_data) #??? <type 'numpy.ndarray'>
-		for i in range(input_layer.shape[1]):
-			channel=input_data[1,i,:,:]
-			input_channels.append(channel)
 
-	#def Preprocess(self, img):
 	# Convert the input image to the input image format of the network. 
 	def Preprocess(self,img):
 		if img.shape[2]==3 and self.num_channels_==1:
@@ -84,7 +75,7 @@ class Classifier:
 			sample=img
 		print "The shape of img:"
 		print  img.shape #(256, 342, 3)
-		sample_float=sample.astype("float32")
+		sample_float=sample.astype(np.float32)
 		
 		#??? Only dealing with 3 channels
 		sample_normalized=np.ndarray(shape=sample_float.shape,dtype="float32")
@@ -98,11 +89,5 @@ class Classifier:
 		input_data= input_layer.data
 		for i in range(self.num_channels_):
 			input_data[0,i,:,:]=sample_normalized[:,:,i]
-	"""	for i in range(len(input_channels)):
-			input_channels[i]=sample_normalized[i,:,:]
-		print type(input_channels)
-		print type(input_channels[0].shape)
-		
-		print input_channels is self.net_blobs['data'].data 
-		log.check(input_channels is self.net_blobs['data'].data, "Input channels are not wrapping the input layer of the network.") """
+	
 		
