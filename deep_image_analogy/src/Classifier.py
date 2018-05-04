@@ -47,12 +47,10 @@ class Classifier:
 		
 		self.Preprocess(img)
 		
-		self.net_.Forward()
+		self.net_.forward()
 		
-		print self.net_._blob_names
-		print self.net_._layer_names
-		#for i in range(len(layers)):
-			
+		for i in range(len(layers)):
+			output_layer=self.net_.blobs[layers[i]]		
 		
 		
 	
