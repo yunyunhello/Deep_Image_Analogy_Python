@@ -222,7 +222,8 @@ class DeepAnalogy:
 		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		#classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		
-		print "The shape of img_A: "+type(img_A)
+		print "The shape of img_A: "
+		print type(img_A)
 		classifier_A.Predict(img_A, 0, 0, 0, 0)	# type(img_A) numpy.ndarray
 			
 		
