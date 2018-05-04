@@ -21,11 +21,11 @@ class Classifier:
 		log.check_eq(len(self.net_.inputs),1,"Network should have exactly one input.")
 		log.check_eq(len(self.net_.outputs),1,"Network should have exactly one output.")
 		self.num_channels_=self.net_.blobs['data'].shape[1]
-		print "self.num_channels:"
+		print "self.num_channels_:"
 		print self.num_channels_
 		log.check(self.num_channels_==3 or self.num_channels_==1, "Input layer should have 1 or 3 channels.")
 		#???
-		self.mean_=[103.939, 116.779, 123.68]
+		self.mean_=np.array([103.939, 116.779, 123.68],dtype="float32")
 		#print type(self.mean_)
 
 	# Load the mean file in binaryproto format. 
@@ -60,9 +60,41 @@ class Classifier:
 		print type(self.net_.blobs['data'].data) #<type 'numpy.ndarray'>
 		width = input_layer.shape[3]
 		height= input_layer.shape[2]
+		print "width: %d" % width #
+		print "height: %d" % height #
 		input_data= input_layer.data #???mutable_cpu_type???<type 'numpy.ndarray'>
 		print "The type of input_data: "
 		print type(input_data) #??? <type 'numpy.ndarray'>
-		#for(i=0;i<input_layer.shape[1],i++)
-			#channel=np.ndaaray(shape=(height,width),dtype="float32")
+		for(i=0;i<input_layer.shape[1],i++)
+			channel=input_data[1,i,:,:]
+			input_channels.append(channel)
 			
+	def Preprocess(self, img, input_channels):
+		# Convert the input image to the input image format of the network. 
+		if img.shape[1]==3 and self.num_channels_==1:
+			sample=cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		elif img.shape[1]==4 and self.num_channels_==1:
+			sample=cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+		elif img.shape[1]==4 and self.num_channels_==3:
+			sample=cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+		elif img.shape[1]==1 and self.num_channels_==3:
+			sample=cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+		else:
+			sample=img
+		
+		sample_float=sample.astype("float32")
+		
+		#??? Only dealing with 3 channels
+		sample_normalized=np.ndarray(shape=sample.shape,dtype="float32")
+		for i in range(self.num_channels):
+			sample_normalized[i,:,:]=sample_float[i,:,:]-self.mean_[i,:,:]
+		
+		#This operation will write the separate BGR planes directly to the input layer 
+		#of the network because it is wrapped by the numpy.ndarray in input_channels.
+		input_channels=cv2.split(sample_normalized)
+		print type(input_channels)
+		print type(input_channels[0].shape)
+		
+		print input_channels is self.net_blobs['data'].data
+		log.check(input_channels is self.net_blobs['data'].data, "Input channels are not wrapping the input layer of the network.")
+		
