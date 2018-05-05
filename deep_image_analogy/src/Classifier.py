@@ -6,6 +6,7 @@ import Structure
 import cv2
 import pycuda.driver as cuda
 
+
 class Classifier:
 	def __init__(self,model_file,trained_file):
 		
@@ -62,6 +63,7 @@ class Classifier:
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
 			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
 			
+			#???			
 			data_s.append(data_d[i])
 		
 	

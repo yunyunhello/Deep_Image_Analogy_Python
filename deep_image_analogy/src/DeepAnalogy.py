@@ -6,6 +6,7 @@ from pycuda.tools import make_default_context
 import cv2
 import math
 import Classifier
+import clock
 
 class parameters:
 	def __init__(self):
@@ -152,6 +153,12 @@ class DeepAnalogy:
 		#???
 		param_size=8
 		
+		params_host=[]
+		ann_host_AB=[]
+		annd_host_AB=[]
+		ann_host_BA=[]
+		annd_host_BA=[]
+		
 		params=parameters()
 		params.layers.append("conv5_1")
 		params.layers.append("conv4_1")
@@ -235,10 +242,56 @@ class DeepAnalogy:
 		#data_B_size=[]
 		#classifier_B.Predict(img_BP, params.layers, data_B, data_BP data_B_size)
 
+		start=time.clock()
 		
+		ann_size_AB=img_AL.shape[0]*img_AL.shape[1]
+		ann_size_BA=img_BPL.shape[0]*img_BPL.shape[1]
 		
+		params_device_AB=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
+		params_device_BA=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
+		ann_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
+		annd_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.float).itemsize))
+		ann_device_BA=cuda.mem_alloc(ann_size_BA*np.dtype(np.uint).itemsize))
+		annd_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.float).itemsize))
 		
+		numlayer=len(params.layers)
 		
-		
-		
-		
+		#feature match
+		for curr_layer in range(numlayer-1):
+			#set parameters
+			params_host.append(data_A_size[curr_layer].channel)
+			params_host.append(data_A_size[curr_layer].height)
+			params_host.append(data_A_size[curr_layer].width)
+			params_host.append(data_B_size[curr_layer].height)
+			params_host.append(data_B_size[curr_layer].width)
+			params_host.append(sizes[curr_layer])
+			params_host.append(params.iter)
+			params_host.append(range[curr_layer])
+			
+			#copy to device
+			cuda.memcpy_htod(params_device_AB, params_host, param_size*(np.dtype(np.int).itemsize))
+			
+			#set parameters
+			params_host[0]=data_B_size[curr_layer].channel
+			params_host[1]=data_B_size[curr_layer].height
+			params_host[2]=data_B_size[curr_layer].width
+			params_host[3]=data_A_size[curr_layer].height
+			params_host[4]=data_A_size[curr_layer].width
+			
+			#copy to device
+			cuda.memcpy_htod(params_device_BA, params_host, param_size*(np.dtype(np.int).itemsize))
+			
+			#set device pa, device pb, device ann and device annd
+			blocksPerGridAB=(data_A_size[curr_layer].width / 20 + 1, data_A_size[curr_layer].height / 20 + 1, 1)
+			threadsPerBlockAB=(20, 20, 1)
+			ann_size_AB = data_A_size[curr_layer].width* data_A_size[curr_layer].height
+			blocksPerGridBA=(data_B_size[curr_layer].width / 20 + 1, data_B_size[curr_layer].height / 20 + 1, 1)
+			threadsPerBlockBA=(20, 20, 1)
+			
+			
+			
+			
+			
+			
+			
+			
