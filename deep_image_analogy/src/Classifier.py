@@ -4,6 +4,7 @@ import caffe
 import glog as log
 import Structure  
 import cv2
+import pycuda.driver as cuda
 
 class Classifier:
 	def __init__(self,model_file,trained_file):
@@ -51,7 +52,17 @@ class Classifier:
 		
 		for i in range(len(layers)):
 			output_layer=self.net_.blobs[layers[i]]		
-		
+			
+			num=output_layer.shape[0]
+			channel=output_layer.shape[1]
+			height=output_layer.shape[2]
+			width=output_layer.shape[3]
+			size[i]=Dim(channel,height,width)
+			
+			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
+			cuda.memcpy_dtod(data_d[i],output_layer.data,channel*height*width*(np.dtype(np.float32).itemsize))
+			
+			data_s[i]=output_layer.data
 		
 	
 

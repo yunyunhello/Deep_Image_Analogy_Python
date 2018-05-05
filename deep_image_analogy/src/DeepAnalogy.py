@@ -230,4 +230,15 @@ class DeepAnalogy:
 		print type(img_A)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
 			
+		#data_B=[]
+		#data_BP=[]
+		#data_B_size=[]
+		#classifier_B.Predict(img_BP, params.layers, data_B, data_BP data_B_size)
+
+		
+		
+		
+		
+		
+		
 		
