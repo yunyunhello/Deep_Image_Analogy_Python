@@ -57,12 +57,12 @@ class Classifier:
 			channel=output_layer.shape[1]
 			height=output_layer.shape[2]
 			width=output_layer.shape[3]
-			size[i]=Dim(channel,height,width)
+			size.append(Structure.Dim(channel,height,width))
 			
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
-			cuda.memcpy_dtod(data_d[i],output_layer.data,channel*height*width*(np.dtype(np.float32).itemsize))
+			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
 			
-			data_s[i]=output_layer.data
+			data_s.append(data_d[i])
 		
 	
 
