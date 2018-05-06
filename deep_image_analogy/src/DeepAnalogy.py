@@ -7,6 +7,7 @@ import cv2
 import math
 import Classifier
 import clock
+import GeneralizedPatchMatch
 
 class parameters:
 	def __init__(self):
@@ -287,10 +288,19 @@ class DeepAnalogy:
 			ann_size_AB = data_A_size[curr_layer].width* data_A_size[curr_layer].height
 			blocksPerGridBA=(data_B_size[curr_layer].width / 20 + 1, data_B_size[curr_layer].height / 20 + 1, 1)
 			threadsPerBlockBA=(20, 20, 1)
+			ann_size_BA = data_B_size[next_layer].width* data_B_size[next_layer].height
 			
-			
-			
-			
+			mod=SourceModule(GeneralizedPatchMatch_cu)
+			#initialize ann if needed
+			if curr_layer==0:
+				initialAnn_kernel=mod.get_function('initialAnn_kernel')
+				initialAnn_kernel(ann_device_AB, params_device_AB, block=threadsPerBlockAB,grid=threadsPerBlockAB)
+				initialAnn_kernel(ann_device_BA, params_device_BA, block=threadsPerBlockBA,grid=threadsPerBlockBA)
+			else:
+				ann_tmp=cuda.mem_alloc(ann_size_BA*np.dtype(np.uint).itemsize))
+					
+				upSample_kernel=mod.get_function('upSample_kernel')
+				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB ,grid=blocksPerGridAB)
 			
 			
 			
