@@ -1,12 +1,13 @@
 
 import pycuda.driver as cuda
 import pycuda.autoinit
+import numpy as np
 from pycuda.compiler import SourceModule
 from pycuda.tools import make_default_context
 import cv2
 import math
 import Classifier
-import clock
+import time
 import GeneralizedPatchMatch
 
 class parameters:
@@ -72,54 +73,54 @@ class DeepAnalogy:
 		# Geometric Transformations of Images: Transforming the orginal loading image(ori_AL and ori_BPL) to 200<=size<=700
 		if ori_AL.shape[0]>700:
 			ratio=700.0/ori_AL.shape[0]
-			img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=img_AL.copy()
+			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_AL=self.__img_AL.copy()
 			
 		if ori_AL.shape[1]>700:
 			ratio=700.0/ori_AL.shape[1]
-			img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=img_AL.copy()
+			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_AL=self.__img_AL.copy()
 			
 		if ori_AL.shape[0]<200:
 			ratio=200.0/ori_AL.shape[0]
-			img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=img_AL.copy()
+			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_AL=self.__img_AL.copy()
 		
 		if ori_AL.shape[1]<200:
 			ratio=200.0/ori_AL.shape[1]
-			img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=img_AL.copy()
+			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_AL=self.__img_AL.copy()
 			
 		if ori_BPL.shape[0]>700:
 			ratio=700.0/ori_BPL.shape[0]
-			img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_BPL=img_BPL.copy()
+			self.__img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_BPL=self.__img_BPL.copy()
 		
 		if ori_BPL.shape[1]>700:
 			ratio=700.0/ori_BPL.shape[1]
-			img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_BPL=img_BPL.copy()
+			self.__img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_BPL=self.__img_BPL.copy()
 			
 		if ori_BPL.shape[0]<200:
 			ratio=200.0/ori_BPL.shape[0]
-			img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_BPL=img_BPL.copy()
+			self.__img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_BPL=self.__img_BPL.copy()
 		
 		if ori_BPL.shape[1]<200:
 			ratio=200.0/ori_BPL.shape[1]
-			img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_BPL=img_BPL.copy()
+			self.__img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_BPL=self.__img_BPL.copy()
 			
 		# Geometric Transformations of Images: Transforming the transformed loading image(ori_AL and ori_BPL) to the total area which are less than 350000
 		if (ori_AL.shape[0]*ori_AL.shape[1])>350000:
 			ratio=math.sqrt(350000.0/(ori_AL.shape[0]*ori_AL.shape[1]))
-			img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=img_AL.copy()
+			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_AL=self.__img_AL.copy()
 			
 		if (ori_BPL.shape[0]*ori_AL.shape[1])>350000:
 			ratio=math.sqrt(350000.0/(ori_BPL.shape[0]*ori_BPL.shape[1]))
-			img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_BPL=img_BPL.copy()
+			self.__img_BPL=cv2.resize(ori_BPL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
+			ori_BPL=self.__img_BPL.copy()
 			
 		# Check if the images are transformed to the required range
 		maxLateral=max(max(ori_AL.shape[0],ori_AL.shape[1]),max(ori_BPL.shape[0],ori_BPL.shape[1]))
@@ -154,7 +155,7 @@ class DeepAnalogy:
 		#???
 		param_size=8
 		
-		params_host=[]
+		params_host=np.empty(param_size,dtype=np.int)
 		ann_host_AB=[]
 		annd_host_AB=[]
 		ann_host_BA=[]
@@ -209,17 +210,17 @@ class DeepAnalogy:
 		img_BP=cv2.resize(self.__img_BPL, None, fx=ratio, fy=ratio,interpolation=cv2.INTER_CUBIC)
 		
 		#???
-		range=[]
+		ranges=[]
 		if img_A.shape[1]>img_A.shape[0]:
-			range.append(img_A.shape[1]/16)
+			ranges.append(img_A.shape[1]/16)
 		else:
-			range.append(img_A.shape[0]/16)
+			ranges.append(img_A.shape[0]/16)
 			
-		range.append(6)
-		range.append(6)
-		range.append(4)
-		range.append(4)
-		range.append(2)
+		ranges.append(6)
+		ranges.append(6)
+		ranges.append(4)
+		ranges.append(4)
+		ranges.append(2)
 		
 		#load caffe
 		#???
@@ -228,7 +229,7 @@ class DeepAnalogy:
 		trained_file = "vgg19/VGG_ILSVRC_19_layers.caffemodel"
 		
 		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
-		#classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
+		classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		
 		data_A=[]
 		data_AP=[]
@@ -238,21 +239,21 @@ class DeepAnalogy:
 		print type(img_A)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
 			
-		#data_B=[]
-		#data_BP=[]
-		#data_B_size=[]
-		#classifier_B.Predict(img_BP, params.layers, data_B, data_BP data_B_size)
+		data_B=[]
+		data_BP=[]
+		data_B_size=[]
+		classifier_B.Predict(img_BP, params.layers, data_B, data_BP, data_B_size)
 
 		start=time.clock()
 		
-		ann_size_AB=img_AL.shape[0]*img_AL.shape[1]
-		ann_size_BA=img_BPL.shape[0]*img_BPL.shape[1]
+		ann_size_AB=self.__img_AL.shape[0]*self.__img_AL.shape[1]
+		ann_size_BA=self.__img_BPL.shape[0]*self.__img_BPL.shape[1]
 		
 		params_device_AB=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
 		params_device_BA=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
 		ann_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
 		annd_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.float).itemsize))
-		ann_device_BA=cuda.mem_alloc(ann_size_BA*np.dtype(np.uint).itemsize))
+		ann_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
 		annd_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.float).itemsize))
 		
 		numlayer=len(params.layers)
@@ -260,17 +261,17 @@ class DeepAnalogy:
 		#feature match
 		for curr_layer in range(numlayer-1):
 			#set parameters
-			params_host.append(data_A_size[curr_layer].channel)
-			params_host.append(data_A_size[curr_layer].height)
-			params_host.append(data_A_size[curr_layer].width)
-			params_host.append(data_B_size[curr_layer].height)
-			params_host.append(data_B_size[curr_layer].width)
-			params_host.append(sizes[curr_layer])
-			params_host.append(params.iter)
-			params_host.append(range[curr_layer])
+			params_host[0]=data_A_size[curr_layer].channel
+			params_host[1]=data_A_size[curr_layer].height
+			params_host[2]=data_A_size[curr_layer].width
+			params_host[3]=data_B_size[curr_layer].height
+			params_host[4]=data_B_size[curr_layer].width
+			params_host[5]=sizes[curr_layer]
+			params_host[6]=params.iter
+			params_host[7]=ranges[curr_layer]
 			
 			#copy to device
-			cuda.memcpy_htod(params_device_AB, params_host, param_size*(np.dtype(np.int).itemsize))
+			cuda.memcpy_htod(params_device_AB, params_host)
 			
 			#set parameters
 			params_host[0]=data_B_size[curr_layer].channel
@@ -280,27 +281,26 @@ class DeepAnalogy:
 			params_host[4]=data_A_size[curr_layer].width
 			
 			#copy to device
-			cuda.memcpy_htod(params_device_BA, params_host, param_size*(np.dtype(np.int).itemsize))
-			
+			cuda.memcpy_htod(params_device_BA, params_host)			
 			#set device pa, device pb, device ann and device annd
 			blocksPerGridAB=(data_A_size[curr_layer].width / 20 + 1, data_A_size[curr_layer].height / 20 + 1, 1)
 			threadsPerBlockAB=(20, 20, 1)
 			ann_size_AB = data_A_size[curr_layer].width* data_A_size[curr_layer].height
 			blocksPerGridBA=(data_B_size[curr_layer].width / 20 + 1, data_B_size[curr_layer].height / 20 + 1, 1)
 			threadsPerBlockBA=(20, 20, 1)
-			ann_size_BA = data_B_size[next_layer].width* data_B_size[next_layer].height
+			ann_size_BA = data_B_size[curr_layer].width* data_B_size[curr_layer].height
 			
-			mod=SourceModule(GeneralizedPatchMatch_cu)
+			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu)
 			#initialize ann if needed
 			if curr_layer==0:
 				initialAnn_kernel=mod.get_function('initialAnn_kernel')
 				initialAnn_kernel(ann_device_AB, params_device_AB, block=threadsPerBlockAB,grid=threadsPerBlockAB)
 				initialAnn_kernel(ann_device_BA, params_device_BA, block=threadsPerBlockBA,grid=threadsPerBlockBA)
 			else:
-				ann_tmp=cuda.mem_alloc(ann_size_BA*np.dtype(np.uint).itemsize))
+				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
 					
 				upSample_kernel=mod.get_function('upSample_kernel')
-				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB ,grid=blocksPerGridAB)
+				#upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB ,grid=blocksPerGridAB)
 			
 			
 			

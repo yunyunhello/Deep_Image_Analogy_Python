@@ -11,6 +11,6 @@ class Dim:
 		self.width=0
 	
 	def __init__(self, c, h, w):
-		channel=c
-		height=h
-		width=w
+		self.channel=c
+		self.height=h
+		self.width=w
