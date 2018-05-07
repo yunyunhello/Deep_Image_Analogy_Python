@@ -11,7 +11,7 @@ class Classifier:
 	def __init__(self,model_file,trained_file):
 		
 		self.input_geometry_=Structure.Size()
-		self.num_channels_=0
+
 		#???
 		#caffe.set_device(0)
 		caffe.set_mode_gpu()
@@ -41,7 +41,7 @@ class Classifier:
 		print "net_.blobs['data'].shape:"
 		print input_layer.shape #<caffe._caffe.IntVec object at 0x7f4c3fa45f50>
 		input_layer.reshape(1,self.num_channels_,self.input_geometry_.height,self.input_geometry_.width)
-	        print "net_.blobs['data'].data.shape:" 
+	    print "net_.blobs['data'].data.shape:" 
 		print input_layer.data.shape #(1, 3, 256, 342)
 		
 		#Forward dimension change to all layers.
@@ -62,9 +62,8 @@ class Classifier:
 			
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
 			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
-			
-			#???			
-			data_s.append(data_d[i])
+					
+			data_s.append(output_layer.data)
 		
 	
 
@@ -84,8 +83,6 @@ class Classifier:
 			sample=cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 		else:
 			sample=img
-		print "The shape of img:"
-		print  img.shape #(256, 342, 3)
 		sample_float=sample.astype(np.float32)
 		
 		#??? Only dealing with 3 channels
@@ -98,7 +95,11 @@ class Classifier:
 		#of the network because it is wrapped by the numpy.ndarray in input_channels.
 		input_layer=self.net_.blobs['data']
 		input_data= input_layer.data
+		print "The original input_data[0,0,0,0]"
+		print input_data[0,0,0,0]
 		for i in range(self.num_channels_):
 			input_data[0,i,:,:]=sample_normalized[:,:,i]
+		print "The modifid input_data[0,0,0,0]"
+		print input_data[0,0,0,0]
 	
 		

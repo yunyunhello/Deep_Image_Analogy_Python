@@ -74,7 +74,7 @@ class DeepAnalogy:
 		if ori_AL.shape[0]>700:
 			ratio=700.0/ori_AL.shape[0]
 			self.__img_AL=cv2.resize(ori_AL, None, fx=ratio, fy=ratio, interpolation=cv2.INTER_CUBIC)
-			ori_AL=self.__img_AL.copy()
+			ori_AL=self.__img_AL.copy() #refer to the different object(np.ndarray)
 			
 		if ori_AL.shape[1]>700:
 			ratio=700.0/ori_AL.shape[1]
@@ -156,11 +156,7 @@ class DeepAnalogy:
 		param_size=8
 		
 		params_host=np.empty(param_size,dtype=np.int)
-		ann_host_AB=[]
-		annd_host_AB=[]
-		ann_host_BA=[]
-		annd_host_BA=[]
-		
+
 		params=parameters()
 		params.layers.append("conv5_1")
 		params.layers.append("conv4_1")
@@ -236,7 +232,7 @@ class DeepAnalogy:
 		data_A_size=[]		
 		
 		print "The shape of img_A: "
-		print type(img_A)
+		print img_A.shape #(256, 342, 3)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
 			
 		data_B=[]
@@ -248,6 +244,12 @@ class DeepAnalogy:
 		
 		ann_size_AB=self.__img_AL.shape[0]*self.__img_AL.shape[1]
 		ann_size_BA=self.__img_BPL.shape[0]*self.__img_BPL.shape[1]
+		
+		ann_host_AB=np.empty(ann_size_AB,dtype=np.uint)
+		annd_host_AB=np.empty(ann_size_AB,dtype=np.float)
+		ann_host_BA=np.empty(ann_size_BA,dtype=np.uint)
+		annd_host_BA=np.empty(ann_size_BA,dtype=np.float)
+		
 		
 		params_device_AB=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
 		params_device_BA=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
@@ -297,9 +299,15 @@ class DeepAnalogy:
 				initialAnn_kernel(ann_device_AB, params_device_AB, block=threadsPerBlockAB,grid=threadsPerBlockAB)
 				initialAnn_kernel(ann_device_BA, params_device_BA, block=threadsPerBlockBA,grid=threadsPerBlockBA)
 			else:
-				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
+			#upsampling, notice this block's dimension is twice the ann at this point
+				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
 					
 				upSample_kernel=mod.get_function('upSample_kernel')
+				print data_A_size[curr_layer - 1].width
+				print type(data_A_size[curr_layer - 1].width)
+				print data_A_size[curr_layer - 1].height
+				print type(data_A_size[curr_layer - 1].height)
+				#get new ann_device
 				#upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB ,grid=blocksPerGridAB)
 			
 			
