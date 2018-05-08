@@ -55,7 +55,7 @@ class Classifier:
 			output_layer=self.net_.blobs[layers[i]]		
 			
 			num=np.int32(output_layer.shape[0])
-			channel=np.int32(output_layer.shape[1]))
+			channel=np.int32(output_layer.shape[1])
 			height=np.int32(output_layer.shape[2])
 			width=np.int32(output_layer.shape[3])
 			size.append(Structure.Dim(channel,height,width))

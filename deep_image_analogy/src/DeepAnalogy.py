@@ -9,6 +9,7 @@ import math
 import Classifier
 import time
 import GeneralizedPatchMatch
+import caffe
 
 class parameters:
 	def __init__(self):
@@ -19,18 +20,18 @@ class parameters:
 		
 #??? Ignore __host__ ???
 def norm(dst, src, smooth, dim):
-	count=im.channel*dim.height*dim.width #type  np.int32
+	count=dim.channel*dim.height*dim.width #type  np.int32
 	x=src
 	x2=cuda.mem_alloc(count*(np.dtype(np.float).itemsize))
 	
 	#??? pycaffe interface ???
-	caffe_gpu_mul(count, x, x, x2)
+	caffe.caffe_gpu_mul(count, x, x, x2)
 	
 	#caculate dis
 	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
 	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
-	caffe_gpu_set(dim.channel, 1.0f, ones)
-	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0f, x2, ones, 0.0f, sum)
+	caffe_gpu_set(dim.channel, 1.0, ones)
+	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
 	
 	
 	
@@ -349,7 +350,7 @@ class DeepAnalogy:
 			Ndata_BP=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))	
 			response_BP=cuda.mem_alloc(data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))
 				
-				
+			norm(Ndata_A, data_A[curr_layer], response_A, data_A_size[curr_layer])		
 				
 				
 				
