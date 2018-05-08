@@ -62,6 +62,10 @@ class Classifier:
 			
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
 			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
+			
+			print "HERE!"
+			print type(cuda.to_device(output_layer.data))
+			print type(data_d[i])
 					
 			data_s.append(output_layer.data)
 		
@@ -95,11 +99,11 @@ class Classifier:
 		#of the network because it is wrapped by the numpy.ndarray in input_channels.
 		input_layer=self.net_.blobs['data']
 		input_data= input_layer.data
-		print "The original input_data[0,0,0,0]"
-		print input_data[0,0,0,0]
+		#print "The original input_data[0,0,0,0]"
+		#print input_data[0,0,0,0]
 		for i in range(self.num_channels_):
 			input_data[0,i,:,:]=sample_normalized[:,:,i]
-		print "The modifid input_data[0,0,0,0]"
-		print input_data[0,0,0,0]
+		#print "The modifid input_data[0,0,0,0]"
+		#print input_data[0,0,0,0]
 	
 		
