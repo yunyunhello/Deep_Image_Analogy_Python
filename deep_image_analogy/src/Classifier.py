@@ -38,10 +38,10 @@ class Classifier:
 		self.input_geometry_.height=img.shape[0]
 		
 		input_layer=self.net_.blobs['data']
-		print "net_.blobs['data'].shape:"
+		
 		print input_layer.shape #<caffe._caffe.IntVec object at 0x7f4c3fa45f50>
 		input_layer.reshape(1,self.num_channels_,self.input_geometry_.height,self.input_geometry_.width)
-	    print "net_.blobs['data'].data.shape:" 
+	    	print "net_.blobs['data'].data.shape:" 
 		print input_layer.data.shape #(1, 3, 256, 342)
 		
 		#Forward dimension change to all layers.

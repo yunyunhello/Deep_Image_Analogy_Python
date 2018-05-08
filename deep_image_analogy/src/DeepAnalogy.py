@@ -308,7 +308,7 @@ class DeepAnalogy:
 				print data_A_size[curr_layer - 1].height
 				print type(data_A_size[curr_layer - 1].height)
 				#get new ann_device
-				#upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB ,grid=blocksPerGridAB)
+				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, np.int32(data_A_size[curr_layer - 1].width), np.int32(data_A_size[curr_layer - 1].height), block=threadsPerBlockAB,grid=blocksPerGridAB)
 			
 			
 			
