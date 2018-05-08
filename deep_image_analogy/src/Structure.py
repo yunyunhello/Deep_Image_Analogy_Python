@@ -5,11 +5,6 @@ class Size:
 		self.height=0
 		
 class Dim:
-	def __init__(self):
-		self.channel=0
-		self.height=0
-		self.width=0
-	
 	def __init__(self, c, h, w):
 		self.channel=c
 		self.height=h

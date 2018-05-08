@@ -16,6 +16,30 @@ class parameters:
 	
 		self.patch_size0=0
 		self.iter=0
+		
+#??? Ignore __host__ ???
+def norm(dst, src, smooth, dim):
+	count=im.channel*dim.height*dim.width #type  np.int32
+	x=src
+	x2=cuda.mem_alloc(count*(np.dtype(np.float).itemsize))
+	
+	#??? pycaffe interface ???
+	caffe_gpu_mul(count, x, x, x2)
+	
+	#caculate dis
+	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
+	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
+	caffe_gpu_set(dim.channel, 1.0f, ones)
+	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0f, x2, ones, 0.0f, sum)
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 
 class DeepAnalogy:
@@ -308,7 +332,27 @@ class DeepAnalogy:
 				print data_A_size[curr_layer - 1].height
 				print type(data_A_size[curr_layer - 1].height)
 				#get new ann_device
-				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, np.int32(data_A_size[curr_layer - 1].width), np.int32(data_A_size[curr_layer - 1].height), block=threadsPerBlockAB,grid=blocksPerGridAB)
+				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB,grid=blocksPerGridAB)
+				cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * np.dtype(np.uint).itemsize)
+				ann_tmp.free()
+				
+				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
+				upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer - 1].width, data_B_size[curr_layer - 1].height, block=threadsPerBlockBA,grid=blocksPerGridBA)
+				cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * np.dtype(np.uint).itemsize)
+				ann_tmp.free()
+				
+			#normarlize two data
+			Ndata_A=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float).itemsize))
+			Ndata_AP=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float).itemsize))
+			response_A=cuda.mem_alloc(data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float32).itemsize))
+			Ndata_B=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))	
+			Ndata_BP=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))	
+			response_BP=cuda.mem_alloc(data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))
+				
+				
+				
+				
+				
 			
 			
 			
