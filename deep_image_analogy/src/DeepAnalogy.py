@@ -25,12 +25,11 @@ def norm(dst, src, smooth, dim):
 	x=src
 	x2=cuda.mem_alloc(count*(np.dtype(np.float).itemsize))
 	
-	#??? pycaffe interface ???
 	math_func.caffe_gpu_mul(count, x, x, x2)
 	
 	#caculate dis
-#	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
-#	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
+	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
+	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
 #	caffe_gpu_set(dim.channel, 1.0, ones)
 #	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
 	
