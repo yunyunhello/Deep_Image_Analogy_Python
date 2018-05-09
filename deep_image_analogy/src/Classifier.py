@@ -1,11 +1,9 @@
-
-import numpy as np
+mport numpy as np
 import caffe
 import glog as log
 import Structure  
 import cv2
 import pycuda.driver as cuda
-import pycuda.gpuarray as gpuarray
 
 
 class Classifier:
@@ -62,12 +60,12 @@ class Classifier:
 			size.append(Structure.Dim(channel,height,width))
 			
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
-			#cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
-			cuda.memcpy_dtod(data_d[i],gpuarray.to_gpu(output_layer.data).gpudata,channel*height*width*np.dtype(np.float32).itemsize)
+			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
 			
 			print "HERE!"
-			print type(data_d[i])
-			print type(data_d[i].as_buffer(size=channel*height*width*np.dtype(np.float32).itemsize,offset=0))
+			print channel
+			print height
+			print width
 					
 			data_s.append(output_layer.data)
 		
