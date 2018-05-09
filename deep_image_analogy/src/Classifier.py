@@ -1,4 +1,4 @@
-mport numpy as np
+import numpy as np
 import caffe
 import glog as log
 import Structure  
@@ -62,11 +62,6 @@ class Classifier:
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
 			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
 			
-			print "HERE!"
-			print channel
-			print height
-			print width
-					
 			data_s.append(output_layer.data)
 		
 	

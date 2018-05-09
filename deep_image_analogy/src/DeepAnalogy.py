@@ -10,6 +10,7 @@ import Classifier
 import time
 import GeneralizedPatchMatch
 import caffe
+import Math_functions as math_func
 
 class parameters:
 	def __init__(self):
@@ -25,13 +26,13 @@ def norm(dst, src, smooth, dim):
 	x2=cuda.mem_alloc(count*(np.dtype(np.float).itemsize))
 	
 	#??? pycaffe interface ???
-	caffe.caffe_gpu_mul(count, x, x, x2)
+	math_func.caffe_gpu_mul(count, x, x, x2)
 	
 	#caculate dis
-	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
-	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
-	caffe_gpu_set(dim.channel, 1.0, ones)
-	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
+#	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
+#	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
+#	caffe_gpu_set(dim.channel, 1.0, ones)
+#	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
 	
 	
 	
