@@ -64,8 +64,9 @@ class Classifier:
 			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
 			
 			print "HERE!"
-			print type(cuda.to_device(output_layer.data))
-			print type(data_d[i])
+			print channel
+			print height
+			print width
 					
 			data_s.append(output_layer.data)
 		
