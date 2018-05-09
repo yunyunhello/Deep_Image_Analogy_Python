@@ -31,9 +31,10 @@ def caffe_gpu_mul(N,a,b,y):
 
 def caffe_gpu_set(N, alpha, Y):
 	if(alpha==0):
-		CUDA_CHECK(cuda.memset_d32(Y,0,N))
+		cuda.memset_d32(Y,0,int(N))
 		return
 	mod=SourceModule(math_functions)
-	set_kernel=(N,alpha,Y,block=(512,1,1),grid=((N+512-1)/512,1,1))
+	set_kernel=mod.get_function('set_kernel')
+	set_kernel(N,alpha,Y,block=(512,1,1),grid=((N+512-1)/512,1,1))
 
 	

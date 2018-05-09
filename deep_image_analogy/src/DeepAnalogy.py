@@ -30,7 +30,7 @@ def norm(dst, src, smooth, dim):
 	#caculate dis
 	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
 	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
-#	caffe_gpu_set(dim.channel, 1.0, ones)
+	math_func.caffe_gpu_set(dim.channel, np.float32(0.0), ones)
 #	caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
 	
 	
@@ -256,8 +256,8 @@ class DeepAnalogy:
 		data_AP=[]
 		data_A_size=[]		
 		
-		print "The shape of img_A: "
-		print img_A.shape #(256, 342, 3)
+		#print "The shape of img_A: "
+		#print img_A.shape #(256, 342, 3)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
 			
 		data_B=[]
@@ -328,10 +328,10 @@ class DeepAnalogy:
 				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
 					
 				upSample_kernel=mod.get_function('upSample_kernel')
-				print data_A_size[curr_layer - 1].width
-				print type(data_A_size[curr_layer - 1].width)
-				print data_A_size[curr_layer - 1].height
-				print type(data_A_size[curr_layer - 1].height)
+				#print data_A_size[curr_layer - 1].width
+				#print type(data_A_size[curr_layer - 1].width)
+				#print data_A_size[curr_layer - 1].height
+				#print type(data_A_size[curr_layer - 1].height)
 				#get new ann_device
 				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB,grid=blocksPerGridAB)
 				cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * np.dtype(np.uint).itemsize)
