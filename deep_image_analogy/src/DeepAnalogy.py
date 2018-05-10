@@ -372,8 +372,8 @@ class DeepAnalogy:
 			temp1=cv2.resize(self.__img_AL,(data_A_size[curr_layer].width, data_A_size[curr_layer].height))	
 			temp2=cv2.resize(self.__img_BPL,(data_B_size[curr_layer].width, data_B_size[curr_layer].height))	
 			
-			response1=np.ndarray(shape=temp1.shape,dtype=np.float32)
-			response2=np.ndarray(shape=temp2.shape,dtype=np.float32)
+			response1=np.ndarray(shape=(temp1.shape[0],temp1.shape[1]),dtype=np.float32)
+			response2=np.ndarray(shape=(temp2.shape[0],temp2.shape[1]),dtype=np.float32)
 			
 			cuda.memcpy_dtoh(response1, response_A)
 			cuda.memcpy_dtoh(response2,response_BP)
