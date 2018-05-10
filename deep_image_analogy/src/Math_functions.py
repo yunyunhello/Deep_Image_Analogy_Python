@@ -46,11 +46,10 @@ def caffe_gpu_set(N, alpha, Y):
 	set_kernel(N,alpha,Y,block=(512,1,1),grid=((N+512-1)/512,1,1))
 	
 def caffe_gpu_gemv(trans, M, N, alpha, A, x, beta, y):
-	cuTransA='t' if TransA=='n' else 'n'
 	h=cublas.cublasCreate()
-	cublas.cublasSgemv(h,cuTransA,N,M,alpha,A,N,x,1,beta,y,1)
+	cublas.cublasSgemv(h,trans,N,M,alpha,A,N,x,1,beta,y,1)
 
-def caffe_gpu_powx(n, a, b, y):
+def caffe_gpu_powx(N, a, alpha, y):
 	mod=SourceModule(math_functions)
 	powx_kernel=mod.get_function('powx_kernel')
 	powx_kernel(N,a,alpha,y,block=(512,1,1),grid=((N+512-1)/512,1,1))

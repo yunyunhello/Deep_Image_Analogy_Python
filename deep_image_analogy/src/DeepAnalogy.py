@@ -31,7 +31,7 @@ def norm(dst, src, smooth, dim):
 	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
 	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
 	math_func.caffe_gpu_set(dim.channel, np.float32(1.0), ones)
-	math_func.caffe_gpu_gemv(CblasTrans, dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
+	math_func.caffe_gpu_gemv('t', dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
 	
 	dis=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
 	math_func.caffe_gpu_powx(dim.height*dim.width, sum, np.float32(0.5), dis)
