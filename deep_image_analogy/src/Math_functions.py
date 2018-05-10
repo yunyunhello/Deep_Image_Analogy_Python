@@ -37,8 +37,8 @@ __global__ void add_scalar_kernel(const int n, const float alpha, float* y) {
   }
 }
 
-__global__ void div_kernel(const int n, const Dtype* a,
-    const Dtype* b, Dtype* y) {
+__global__ void div_kernel(const int n, const float* a,
+    const float* b, float* y) {
   CUDA_KERNEL_LOOP(index, n) {
     y[index] = a[index] / b[index];
   }
@@ -60,8 +60,8 @@ def caffe_gpu_set(N, alpha, Y):
 	
 def caffe_gpu_gemv(TransA, M, N, alpha, A, x, beta, y):
 	h=cublas.cublasCreate()
-	cuTransA='t' if TransA=='n' else cuTransA='n'
-	cublas.cublasSgemv(h,TransA,N,M,alpha,A,N,x,1,beta,y,1)
+	cuTransA='t' if TransA=='n' else 'n'
+	cublas.cublasSgemv(h,cuTransA,N,M,alpha,A,N,x,1,beta,y,1)
 
 def caffe_gpu_powx(N, a, alpha, y):
 	mod=SourceModule(math_functions)
@@ -77,10 +77,10 @@ def caffe_gpu_scal(N, alpha, X):
 	cublas.cublasSscal(cublas.cublasCreate(),N, alpha, X, 1)
 	
 def caffe_gpu_gemm(TransA, TransB, M, N, K, alpha, A, B, beta, C):
-	lda=K if TransA =='n' else lda=M
-	ldb=N if TransB =='n' else lda=K
-	cuTransA='n' if TransA=='n' else cuTransA='t'
-	cuTransB='n' if TransB=='n' else cuTransB='t'
+	lda=K if TransA =='n' else M
+	ldb=N if TransB =='n' else K
+	cuTransA='n' if TransA=='n' else 't'
+	cuTransB='n' if TransB=='n' else 't'
 	cublas.cublasSgemm(cublas.cublasCreate(),cuTransB, cuTransA, N, M, K, alpha, B, ldb, A, lda, beta, C, N)
 
 def caffe_gpu_div(N, a, b, y):

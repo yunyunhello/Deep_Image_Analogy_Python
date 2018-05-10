@@ -29,7 +29,7 @@ def norm(dst, src, smooth, dim):
 	math_func.caffe_gpu_mul(count, x, x, x2)
 	
 	#caculate dis
-	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float).itemsize))
+	sum=cuda.mem_alloc(dim.height*dim.width*(np.dtype(np.float32).itemsize))
 	ones=cuda.mem_alloc(dim.channel*(np.dtype(np.float).itemsize))
 	math_func.caffe_gpu_set(dim.channel, np.float32(1.0), ones)
 	math_func.caffe_gpu_gemv('t', dim.channel, dim.height*dim.width, 1.0, x2, ones, 0.0, sum)
@@ -38,17 +38,19 @@ def norm(dst, src, smooth, dim):
 	math_func.caffe_gpu_powx(dim.height*dim.width, sum, np.float32(0.5), dis)
 	
 	if(smooth!=None):
-		cuda.memcpy_dtod(smooth, sum, dim.height*dim.width*(np.dtype(np.float).itemsize))
+		minv=np.empty(1,dtype=np.float32)
+		maxv=np.empty(1,dtype=np.float32)
+		cuda.memcpy_dtod(smooth, sum, dim.height*dim.width*(np.dtype(np.float32).itemsize))
 		index=cublas.cublasIsamin(cublas.cublasCreate(),dim.height*dim.width, sum, 1)
-		cuda.memcpy_dtoh(minv,sum+index-1) #???
+		cuda.memcpy_dtoh(minv,int(sum)+index-1) #???
 		index=cublas.cublasIsamax(cublas.cublasCreate(),dim.height*dim.width, sum, 1)
-		cuda.memcpy_dtoh(maxv,sum+index-1)
+		cuda.memcpy_dtoh(maxv,int(sum)+index-1)
 		
-		math_func.caffe_gpu_add_scalar(dim.height*dim.width, -minv, smooth)
-		math_func.caffe_gpu_scal(dim.height*dim.width, np.float32(1.0) / (maxv - minv), smooth)
+		math_func.caffe_gpu_add_scalar(dim.height*dim.width, -minv[0], smooth)
+		math_func.caffe_gpu_scal(dim.height*dim.width, np.float32(1.0) / (maxv[0] - minv[0]), smooth)
 	
 	math_func.caffe_gpu_gemm('n', 'n', dim.channel, dim.width*dim.height, 1, np.float32(1.0), ones, dis, np.float32(0.0), x2)
-	math_func.caffe_gpu_div(ount, src, x2, dst)
+	math_func.caffe_gpu_div(count, src, x2, dst)
 	
 	x2.free()
 	ones.free()
