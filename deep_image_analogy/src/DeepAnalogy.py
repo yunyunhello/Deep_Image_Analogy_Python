@@ -12,6 +12,7 @@ import GeneralizedPatchMatch
 import caffe
 import Math_functions as math_func
 import skcuda.cublas as cublas
+import Cv_func
 
 class parameters:
 	def __init__(self):
@@ -366,10 +367,18 @@ class DeepAnalogy:
 			response_BP=cuda.mem_alloc(data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))
 				
 			norm(Ndata_A, data_A[curr_layer], response_A, data_A_size[curr_layer])		
-				
-				
-				
+			norm(Ndata_BP, data_BP[curr_layer], response_BP, data_B_size[curr_layer])
+	
+			temp1=cv2.resize(self.__img_AL,(data_A_size[curr_layer].width, data_A_size[curr_layer].height))	
+			temp2=cv2.resize(self.__img_BPL,(data_B_size[curr_layer].width, data_B_size[curr_layer].height))	
 			
+			response1=np.ndarray(shape=temp1.shape,dtype=np.float32)
+			response2=np.ndarray(shape=temp2.shape,dtype=np.float32)
 			
+			cuda.memcpy_dtoh(response1, response_A)
+			cuda.memcpy_dtoh(response2,response_BP)
+			
+			response_byte1=Cv_func.convertTo(response1,np.uint8,255)
+			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
 			
