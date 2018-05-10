@@ -11,6 +11,7 @@ import time
 import GeneralizedPatchMatch
 import caffe
 import Math_functions as math_func
+import skcuda.cublas as cublas
 
 class parameters:
 	def __init__(self):
@@ -37,12 +38,22 @@ def norm(dst, src, smooth, dim):
 	math_func.caffe_gpu_powx(dim.height*dim.width, sum, np.float32(0.5), dis)
 	
 	if(smooth!=None):
-		print "Smooth!=None"
+		cuda.memcpy_dtod(smooth, sum, dim.height*dim.width*(np.dtype(np.float).itemsize))
+		index=cublas.cublasIsamin(cublas.cublasCreate(),dim.height*dim.width, sum, 1)
+		cuda.memcpy_dtoh(minv,sum+index-1) #???
+		index=cublas.cublasIsamax(cublas.cublasCreate(),dim.height*dim.width, sum, 1)
+		cuda.memcpy_dtoh(maxv,sum+index-1)
+		
+		math_func.caffe_gpu_add_scalar(dim.height*dim.width, -minv, smooth)
+		math_func.caffe_gpu_scal(dim.height*dim.width, np.float32(1.0) / (maxv - minv), smooth)
 	
+	math_func.caffe_gpu_gemm('n', 'n', dim.channel, dim.width*dim.height, 1, np.float32(1.0), ones, dis, np.float32(0.0), x2)
+	math_func.caffe_gpu_div(ount, src, x2, dst)
 	
-	
-	
-	
+	x2.free()
+	ones.free()
+	dis.free()
+	sum.free()
 
 
 class DeepAnalogy:
