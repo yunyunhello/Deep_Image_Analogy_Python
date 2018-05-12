@@ -1,7 +1,8 @@
 
 
 GeneralizedPatchMatch_cu='''
-
+#include "curand_kernel.h"
+#include "float.h"
 __host__ __device__ int clamp(int x, int x_max, int x_min) {//assume x_max >= x_min
 	if (x > x_max)
 	{
@@ -27,6 +28,108 @@ __host__ __device__ int INT_TO_X(unsigned int v) {
 
 __host__ __device__ int INT_TO_Y(unsigned int v) {
 	return (v >> 11)&((1 << 11) - 1);
+}
+
+__host__ __device__ int cuMax(int a, int b) {
+	if (a > b) {
+		return a;
+	}
+	else {
+		return b;
+	}
+}
+__host__ __device__ int cuMin(int a, int b) {
+	if (a < b) {
+		return a;
+	}
+	else {
+		return b;
+	}
+}
+
+__device__ float MycuRand(curandState &state) {//random number in cuda, between 0 and 1
+	
+	 return curand_uniform(&state);
+
+}
+
+
+__device__ void InitcuRand(curandState &state) {//random number in cuda, between 0 and 1
+	
+	int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+    curand_init(i, 0, 0, &state);
+
+}
+
+__host__ __device__ float dist(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int xp, int yp, int patch_w, float cutoff = INT_MAX) {
+
+	return dist_compute(a, b, a1, b1,  channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, cutoff);
+
+}
+
+__device__ void improve_guess(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int &xbest, int &ybest, float &dbest, int xp, int yp, int patch_w, float rr) {
+	float d;
+	d = dist(a, b, a1, b1, channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, dbest);
+	if (d + rr < dbest) {
+		xbest = xp;
+		ybest = yp;
+		dbest = d;
+	}
+}
+
+__host__ __device__ float dist_compute(float * a, float * b, float * a1, float * b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int bx, int by, int patch_w, float cutoff = INT_MAX) {//this is the average number of all matched pixel
+																																																		  //suppose patch_w is an odd number
+	float pixel_sum = 0, pixel_no = 0, pixel_dist = 0;//number of pixels realy counted
+	float pixel_sum1 = 0;
+	int a_slice = a_rows*a_cols, b_slice = b_rows*b_cols;
+	int a_pitch = a_cols, b_pitch = b_cols;
+	float dp_tmp;
+
+	for (int dy = -patch_w / 2; dy <= patch_w / 2; dy++) {
+		for (int dx = -patch_w / 2; dx <= patch_w / 2; dx++) {
+
+			if (
+				(ay + dy) < a_rows && (ay + dy) >= 0 && (ax + dx) < a_cols && (ax + dx) >= 0
+				&&
+				(by + dy) < b_rows && (by + dy) >= 0 && (bx + dx) < b_cols && (bx + dx) >= 0
+				)//the pixel in a should exist and pixel in b should exist
+			{
+				if (channels == 3)
+				{
+					for (int dc = 0; dc < channels; dc++)
+					{
+						dp_tmp = a[dc * a_slice + (ay + dy) * a_pitch + (ax + dx)] - b[dc * b_slice + (by + dy) * b_pitch + (bx + dx)];
+						pixel_sum += dp_tmp * dp_tmp;
+						dp_tmp = a1[dc * a_slice + (ay + dy) * a_pitch + (ax + dx)] - b1[dc * b_slice + (by + dy) * b_pitch + (bx + dx)];
+						pixel_sum1 += dp_tmp * dp_tmp;
+
+					}
+				}
+				else
+				{
+					for (int dc = 0; dc < channels; dc++)
+					{
+						dp_tmp = a[dc * a_slice + (ay + dy) * a_pitch + (ax + dx)] * b[dc * b_slice + (by + dy) * b_pitch + (bx + dx)];
+						pixel_sum -= dp_tmp;
+						dp_tmp = a1[dc * a_slice + (ay + dy) * a_pitch + (ax + dx)] * b1[dc * b_slice + (by + dy) * b_pitch + (bx + dx)];
+						pixel_sum1 -= dp_tmp;
+					}
+				}
+				
+
+				pixel_no += 1;
+			}
+		}
+
+	}
+
+
+	pixel_dist = (pixel_sum + pixel_sum1) / pixel_no;
+	if (pixel_dist >= cutoff) { return cutoff; }
+	else {
+		return pixel_dist;
+	}
 }
 
 __global__ void initialAnn_kernel(unsigned int * ann, int * params){

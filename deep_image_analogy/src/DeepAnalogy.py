@@ -333,7 +333,7 @@ class DeepAnalogy:
 			threadsPerBlockBA=(20, 20, 1)
 			ann_size_BA = data_B_size[curr_layer].width* data_B_size[curr_layer].height
 			
-			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu)
+			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,include_dirs=['/usr/include/'],no_extern_c=1)
 			#initialize ann if needed
 			if curr_layer==0:
 				initialAnn_kernel=mod.get_function('initialAnn_kernel')
