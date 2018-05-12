@@ -381,4 +381,115 @@ class DeepAnalogy:
 			response_byte1=Cv_func.convertTo(response1,np.uint8,255)
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
+			blend=mod.get_function('blend')
+			blend(response_A, data_A[curr_layer], data_AP[curr_layer], weight[curr_layer], params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB,)
+			blend(response_BP, data_BP[curr_layer], data_B[curr_layer], weight[curr_layer], params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
+			
+			norm(Ndata_AP, data_AP[curr_layer], None, data_A_size[curr_layer])
+			norm(Ndata_B, data_B[curr_layer], NULL, data_B_size[curr_layer])
+			
+			#patchmatch
+			print "Finding nearest neighbor field using PatchMatch Algorithm at layer: %s" % params.layers[curr_layer]
+			patchmatch=mod.get_function('patchmatch')
+			patchmatch(Ndata_AP, Ndata_BP, Ndata_A, Ndata_B, ann_device_AB, annd_device_AB, params_device_AB, block=threadsPerBlockBA, grid=blocksPerGridBA)
+			patchmatch(Ndata_B, Ndata_A, Ndata_BP, Ndata_AP, ann_device_BA, annd_device_BA, params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
+			
+			Ndata_A.free()
+			Ndata_AP.free()
+			Ndata_B.free()
+			Ndata_BP.free()
+			response_A.free()
+			response_BP.free()
+			
+			#deconv
+			if curr_layer < numlayer - 2:
+				next_layer = curr_layer + 2
+				
+				#upsample
+				#for better deconvolution
+				params_host[0] = data_A_size[next_layer].channel
+				params_host[1] = data_A_size[next_layer].height
+				params_host[2] = data_A_size[next_layer].width
+				params_host[3] = data_B_size[next_layer].height
+				params_host[4] = data_B_size[next_layer].width
+				params_host[5] = sizes[next_layer]
+				params_host[6] = params.iter
+				params_host[7] = range[next_layer]
+				
+				#copy to device
+				cuda.memcpy_htod(params_device_AB, params_host)
+				
+				#set parameters
+				params_host[0] = data_B_size[next_layer].channel
+				params_host[1] = data_B_size[next_layer].height
+				params_host[2] = data_B_size[next_layer].width
+				params_host[3] = data_A_size[next_layer].height
+				params_host[4] = data_A_size[next_layer].width
+				
+				#copy to device
+				cuda.memcpy_htod(params_device_BA, params_host)
+				
+				#set device pa, pb, device ann and device annd
+				blocksPerGridAB=(data_A_size[next_layer].width / 20 + 1, data_A_size[next_layer].height / 20 + 1, 1)
+				threadsPerBlockAB=(20,20,1)
+				ann_size_AB = data_A_size[next_layer].width* data_A_size[next_layer].height
+				blocksPerGridSC=(data_B_size[next_layer].width / 20 + 1, data_B_size[next_layer].height / 20 + 1, 1)
+				threadsPerBlockBA=(20,20,1)
+				ann_size_BA = data_B_size[next_layer].width* data_B_size[next_layer].height
+				
+				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
+				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer].width, data_A_size[curr_layer].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_devices
+				avg_vote=mod.get_function('avg_vote')
+				avg_vote(ann_tmp, data_BP[next_layer], data_AP[next_layer], params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
+				ann_tmp.free()
+				
+				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
+				upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer].width, data_B_size[curr_layer].height, block=threadsPerBlockBA, grid=blocksPerGridBA) #get new ann_devices
+				ann_tmp.free()
+				
+				#set parameters
+				params_host[0] = data_A_size[curr_layer].channel;#channels
+				params_host[1] = data_A_size[curr_layer].height;
+				params_host[2] = data_A_size[curr_layer].width;
+				params_host[3] = data_B_size[curr_layer].height;
+				params_host[4] = data_B_size[curr_layer].width;
+				params_host[5] = sizes[curr_layer];
+				params_host[6] = params.iter;
+				params_host[7] = range[curr_layer];
+				
+				#copy to device
+				cuda.memcpy_htod(params_device_AB, params_host)
+				
+				#set parameters
+				params_host[0] = data_B_size[curr_layer].channel; #channels
+				params_host[1] = data_B_size[curr_layer].height;
+				params_host[2] = data_B_size[curr_layer].width;
+				params_host[3] = data_A_size[curr_layer].height;
+				params_host[4] = data_A_size[curr_layer].width;		
+
+				#copy to device
+				cuda.memcpy_htod(params_device_BA, params_host)
+				
+				#set device pa, device pb, device ann and device annd
+				blocksPerGridAB=(data_A_size[curr_layer].width / 20 + 1, data_A_size[curr_layer].height / 20 + 1, 1)
+				threadsPerBlockAB =(20, 20, 1)
+				ann_size_AB = data_A_size[curr_layer].width* data_A_size[curr_layer].height
+				blocksPerGridBA = (data_B_size[curr_layer].width / 20 + 1, data_B_size[curr_layer].height / 20 + 1, 1)
+				threadsPerBlockBA = (20, 20, 1)
+				ann_size_BA = data_B_size[curr_layer].width* data_B_size[curr_layer].height
+				
+				num1 = data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height
+				num2 = data_A_size[next_layer].channel*data_A_size[next_layer].width*data_A_size[next_layer].height
+				
+				target=[]
+				target=cuda.mem_alloc(num1*(np.dtype(np.float32).itemsize))
+				avg_vote(ann_device_AB, data_BP[curr_layer], target, params_device_AB,block=threadsPerBlockAB,grid=blocksPerGridAB)
+				
+				
+				
+				
+			
+			
+			
+			
 			
