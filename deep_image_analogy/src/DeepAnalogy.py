@@ -382,16 +382,20 @@ class DeepAnalogy:
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
 			blend=mod.get_function('blend')
-			blend(response_A, data_A[curr_layer], data_AP[curr_layer],np.float32(weight[curr_layer]), params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
+			print type(response_A)
+			print type(data_A[curr_layer])
+			print type(data_AP[curr_layer])
+			print type(params_device_AB)
+			blend(response_A, data_A[curr_layer], data_AP[curr_layer], np.float32(weight[curr_layer]), params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
 			blend(response_BP, data_BP[curr_layer], data_B[curr_layer], np.float32(weight[curr_layer]), params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
 			
 			norm(Ndata_AP, data_AP[curr_layer], None, data_A_size[curr_layer])
-			norm(Ndata_B, data_B[curr_layer], NULL, data_B_size[curr_layer])
+			norm(Ndata_B, data_B[curr_layer], None, data_B_size[curr_layer])
 			
 			#patchmatch
 			print "Finding nearest neighbor field using PatchMatch Algorithm at layer: %s" % params.layers[curr_layer]
 			patchmatch=mod.get_function('patchmatch')
-			patchmatch(Ndata_AP, Ndata_BP, Ndata_A, Ndata_B, ann_device_AB, annd_device_AB, params_device_AB, block=threadsPerBlockBA, grid=blocksPerGridBA)
+			patchmatch(Ndata_AP, Ndata_BP, Ndata_A, Ndata_B, ann_device_AB, annd_device_AB, params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
 			patchmatch(Ndata_B, Ndata_A, Ndata_BP, Ndata_AP, ann_device_BA, annd_device_BA, params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
 			
 			Ndata_A.free()
@@ -414,7 +418,7 @@ class DeepAnalogy:
 				params_host[4] = data_B_size[next_layer].width
 				params_host[5] = sizes[next_layer]
 				params_host[6] = params.iter
-				params_host[7] = range[next_layer]
+				params_host[7] = ranges[next_layer]
 				
 				#copy to device
 				cuda.memcpy_htod(params_device_AB, params_host)
@@ -438,6 +442,7 @@ class DeepAnalogy:
 				ann_size_BA = data_B_size[next_layer].width* data_B_size[next_layer].height
 				
 				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
+				upSample_kernel=mod.get_function('upSample_kernel')
 				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer].width, data_A_size[curr_layer].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_devices
 				avg_vote=mod.get_function('avg_vote')
 				avg_vote(ann_tmp, data_BP[next_layer], data_AP[next_layer], params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
@@ -455,7 +460,7 @@ class DeepAnalogy:
 				params_host[4] = data_B_size[curr_layer].width;
 				params_host[5] = sizes[curr_layer];
 				params_host[6] = params.iter;
-				params_host[7] = range[curr_layer];
+				params_host[7] = ranges[curr_layer];
 				
 				#copy to device
 				cuda.memcpy_htod(params_device_AB, params_host)

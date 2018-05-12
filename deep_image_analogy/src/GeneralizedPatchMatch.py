@@ -149,7 +149,7 @@ extern "C" __global__ void initialAnn_kernel(unsigned int * ann, int * params){
 	}
 }
 
-__global__ void upSample_kernel(unsigned int * ann, unsigned int * ann_tmp,int * params, int aw_half,int ah_half) {
+extern "C"__global__ void upSample_kernel(unsigned int * ann, unsigned int * ann_tmp,int * params, int aw_half,int ah_half) {
 
 	int ax = blockIdx.x*blockDim.x + threadIdx.x;
 	int ay = blockIdx.y*blockDim.y + threadIdx.y;
@@ -214,7 +214,7 @@ extern "C" __global__ void blend(float *cmap, float* oldd, float* newd, float we
 	}
 }
 
-__global__ void patchmatch(float * a, float * b, float *a1, float *b1, unsigned int *ann, float *annd, int * params) {
+extern "C"__global__ void patchmatch(float * a, float * b, float *a1, float *b1, unsigned int *ann, float *annd, int * params) {
 
 	int ax = blockIdx.x*blockDim.x + threadIdx.x;
 	int ay = blockIdx.y*blockDim.y + threadIdx.y;
@@ -343,7 +343,7 @@ __global__ void patchmatch(float * a, float * b, float *a1, float *b1, unsigned 
 	}
 }
 
-__global__ void avg_vote(unsigned int * ann, float * pb, float * pc, int * params) {
+extern "C" __global__ void avg_vote(unsigned int * ann, float * pb, float * pc, int * params) {
 
 	int ax = blockIdx.x*blockDim.x + threadIdx.x;
 	int ay = blockIdx.y*blockDim.y + threadIdx.y;

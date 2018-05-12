@@ -60,9 +60,10 @@ class Classifier:
 			size.append(Structure.Dim(channel,height,width))
 			
 			data_d.append(cuda.mem_alloc(channel*height*width*(np.dtype(np.float32).itemsize)))
-			cuda.memcpy_dtod(data_d[i],cuda.to_device(output_layer.data),channel*height*width*np.dtype(np.float32).itemsize)
+			gpu_data=cuda.to_device(output_layer.data)
+			cuda.memcpy_dtod(data_d[i],gpu_data,channel*height*width*np.dtype(np.float32).itemsize)
 			
-			data_s.append(output_layer.data)
+			data_s.append(gpu_data)
 		
 	
 
