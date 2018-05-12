@@ -333,7 +333,7 @@ class DeepAnalogy:
 			threadsPerBlockBA=(20, 20, 1)
 			ann_size_BA = data_B_size[curr_layer].width* data_B_size[curr_layer].height
 			
-			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,include_dirs=['/usr/include/'],no_extern_c=1)
+			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,no_extern_c=1)
 			#initialize ann if needed
 			if curr_layer==0:
 				initialAnn_kernel=mod.get_function('initialAnn_kernel')
@@ -382,8 +382,8 @@ class DeepAnalogy:
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
 			blend=mod.get_function('blend')
-			blend(response_A, data_A[curr_layer], data_AP[curr_layer], weight[curr_layer], params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB,)
-			blend(response_BP, data_BP[curr_layer], data_B[curr_layer], weight[curr_layer], params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
+			blend(response_A, data_A[curr_layer], data_AP[curr_layer],np.float32(weight[curr_layer]), params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
+			blend(response_BP, data_BP[curr_layer], data_B[curr_layer], np.float32(weight[curr_layer]), params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
 			
 			norm(Ndata_AP, data_AP[curr_layer], None, data_A_size[curr_layer])
 			norm(Ndata_B, data_B[curr_layer], NULL, data_B_size[curr_layer])

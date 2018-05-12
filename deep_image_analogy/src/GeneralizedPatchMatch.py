@@ -133,7 +133,7 @@ __device__ void improve_guess(float * a, float * b, float *a1, float *b1, int ch
 	}
 }
 
-__global__ void initialAnn_kernel(unsigned int * ann, int * params){
+extern "C" __global__ void initialAnn_kernel(unsigned int * ann, int * params){
 	//just use 7 of 9 parameters
 	int ah = params[1];
 	int aw = params[2];
@@ -186,7 +186,7 @@ __global__ void upSample_kernel(unsigned int * ann, unsigned int * ann_tmp,int *
 
 }
 
-__global__ void blend(float *cmap, float* oldd, float* newd, float weight,int * params)
+extern "C" __global__ void blend(float *cmap, float* oldd, float* newd, float weight,int * params)
 {
 	int ax = blockIdx.x*blockDim.x + threadIdx.x;
 	int ay = blockIdx.y*blockDim.y + threadIdx.y;
