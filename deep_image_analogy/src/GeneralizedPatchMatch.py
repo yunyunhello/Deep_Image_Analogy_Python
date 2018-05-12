@@ -62,22 +62,6 @@ __device__ void InitcuRand(curandState &state) {//random number in cuda, between
 
 }
 
-__host__ __device__ float dist(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int xp, int yp, int patch_w, float cutoff = INT_MAX) {
-
-	return dist_compute(a, b, a1, b1,  channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, cutoff);
-
-}
-
-__device__ void improve_guess(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int &xbest, int &ybest, float &dbest, int xp, int yp, int patch_w, float rr) {
-	float d;
-	d = dist(a, b, a1, b1, channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, dbest);
-	if (d + rr < dbest) {
-		xbest = xp;
-		ybest = yp;
-		dbest = d;
-	}
-}
-
 __host__ __device__ float dist_compute(float * a, float * b, float * a1, float * b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int bx, int by, int patch_w, float cutoff = INT_MAX) {//this is the average number of all matched pixel
 																																																		  //suppose patch_w is an odd number
 	float pixel_sum = 0, pixel_no = 0, pixel_dist = 0;//number of pixels realy counted
@@ -129,6 +113,23 @@ __host__ __device__ float dist_compute(float * a, float * b, float * a1, float *
 	if (pixel_dist >= cutoff) { return cutoff; }
 	else {
 		return pixel_dist;
+	}
+}
+
+
+__host__ __device__ float dist(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int xp, int yp, int patch_w, float cutoff = INT_MAX) {
+
+	return dist_compute(a, b, a1, b1,  channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, cutoff);
+
+}
+
+__device__ void improve_guess(float * a, float * b, float *a1, float *b1, int channels, int a_rows, int a_cols, int b_rows, int b_cols, int ax, int ay, int &xbest, int &ybest, float &dbest, int xp, int yp, int patch_w, float rr) {
+	float d;
+	d = dist(a, b, a1, b1, channels, a_rows, a_cols, b_rows, b_cols, ax, ay, xp, yp, patch_w, dbest);
+	if (d + rr < dbest) {
+		xbest = xp;
+		ybest = yp;
+		dbest = d;
 	}
 }
 
