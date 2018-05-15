@@ -418,3 +418,50 @@ extern "C" __global__ void sub_kernel(const int n, const float* a, const float* 
   }
 }
 '''
+
+def INT_TO_X(v):
+	return (v)&((1 << 11) - 1)
+	
+def INT_TO_Y(v):
+	return (v >> 11)&((1 << 11) - 1)
+
+def reconstruct_dflow(a, b, ann, patch_w):
+	flow=a.copy()
+	for ay in range(a.shape[0]):
+		for ax in range(a.shape[1]):
+			v = ann[ay*a.shape[1] + ax]
+				xbest = INT_TO_X(v)
+				ybest = INT_TO_Y(v)
+				flow[ay,ax,0]=np.uint8(255 * ((float)(ax - xbest + b.cols - 1) / (2 * b.shape[1]))
+				flow[ay,ax,2]=np.uint8(0)
+				flow[ay,ax,1]=np.uint8(255 * ((float)(ay - ybest + b.rows - 1) / (2 * b.shape[1])))
+				
+	return flow
+	
+def reconstruct_avg(Mat a, Mat b, unsigned int * ann, int patch_w):
+	c=a.copy()
+	
+	for ay in range(a.shape[0]):
+		for ax in range(a.shape[1]):
+			point_num = 0
+			
+			dist_tmp=np.zero(3, dtype=np.float32)
+			
+			for dx in range(-patch_w / 2, patch_w / 2):
+				for dy in range(-patch_w / 2, patch_w / 2):
+					if (ax + dx) < a.shape[1] && (ax + dx) >= 0 && (ay + dy) < a.shape[0] && (ay + dy) >= 0:
+						vp = ann[(ay + dy)*a.shape[1] + ax + dx]
+						xp = INT_TO_X(vp)
+						yp = INT_TO_Y(vp)
+						
+					if (xp - dx) < b.shape[1] && (xp - dx) >= 0 && (yp - dy) < b.shape[0] && (yp - dy) >= 0:
+						for dc in range(3):
+							dist_tmp[dc] += b[yp - dy, xp - dx, dc]
+							
+						point_num++
+						
+			for dc in range(3):
+				c[ay, ax, dc]= dist_tmp[dc]/point_num
+	
+	return c
+						
