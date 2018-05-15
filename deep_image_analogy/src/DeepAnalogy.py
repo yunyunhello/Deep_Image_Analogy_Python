@@ -497,88 +497,88 @@ class DeepAnalogy:
 		
 		# upsample
 		curr_layer = numlayer - 1
-		{
-			# set parameters
-			params_host[0] = 3 # channels
-			params_host[1] = self.__img_AL.rows
-			params_host[2] = self.__img_AL.cols
-			params_host[3] = self.__img_BPL.rows
-			params_host[4] = self.__img_BPL.cols
-			params_host[5] = sizes[curr_layer]
-			params_host[6] = params.iter
-			params_host[7] = ranges[curr_layer]
+		
+		print "HERE"
+		# set parameters
+		params_host[0] = np.int32(3) # channels
+		params_host[1] = self.__img_AL.shape[0]
+		params_host[2] = self.__img_AL.shape[1]
+		params_host[3] = self.__img_BPL.shape[0]
+		params_host[4] = self.__img_BPL.shape[1]
+		params_host[5] = sizes[curr_layer]
+		params_host[6] = params.iter
+		params_host[7] = ranges[curr_layer]
+		
+		# copy to device
+		cuda.memcpy_htod(params_device_AB, params_host)
 			
-			# copy to device
-			cuda.memcpy_htod(params_device_AB, params_host)
+		# set parameters
+		params_host[0] = 3 # channels
+		params_host[1] = self.__img_BPL.shape[0]
+		params_host[2] = self.__img_BPL.shape[1]
+		params_host[3] = self.__img_AL.shape[0]
+		params_host[4] = self.__img_AL.shape[1]
 			
-			# set parameters
-			params_host[0] = 3 # channels
-			params_host[1] = img_BPL.rows
-			params_host[2] = img_BPL.cols
-			params_host[3] = img_AL.rows
-			params_host[4] = img_AL.cols
+		# copy to device
+		cuda.memcpy_htod(params_device_BA, params_host)
 			
-			# copy to device
-			cuda.memcpy_htod(params_device_BA, params_host)
+		#set device pa, device pb, device ann and device annd
+		blocksPerGridAB=(self.__img_AL.shape[1] / 20 + 1, self.__img_AL.shape[0] / 20 + 1, 1)
+		threadsPerBlockAB=(20, 20, 1)
+		ann_size_AB = self.__img_AL.shape[1]* self.__img_AL.shape[0]
+		blocksPerGridBA=(self.__img_BPL.shape[1] / 20 + 1, self.__img_BPL.shape[0] / 20 + 1, 1)
+		threadsPerBlockBA=(20, 20, 1)
+		ann_size_BA = self.__img_BPL.shape[0]* self.__img_BPL.shape[1]
 			
-			#set device pa, device pb, device ann and device annd
-			blocksPerGridAB=(img_AL.cols / 20 + 1, img_AL.rows / 20 + 1, 1)
-			threadsPerBlockAB=(20, 20, 1)
-			ann_size_AB = self.__img_AL.cols* self.__img_AL.rows
-			blocksPerGridBA=(self.__img_BPL.cols / 20 + 1, self.__img_BPL.rows / 20 + 1, 1)
-			threadsPerBlockBA=(20, 20, 1)
-			ann_size_BA = self.__img_BPL.rows* self.__img_BPL.cols
+		mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,no_extern_c=1)
 			
-			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,no_extern_c=1)
+		# updample
+		ann_tmp=cuda.mem_alloc(ann_size_AB * (np.dtype(np.uint).itemsize))
+		upSample_kernel=mod.get_function('upSample_kernel')
+		upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
+		cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * (np.dtype(np.uint).itemsize))
+		ann_tmp.free()
 			
-			# updample
-			ann_tmp=cuda.mem_alloc(ann_size_AB * (np.dtype(np.uint).itemsize))
-			upSample_kernel=mod.get_function('upSample_kernel')
-			upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
-			cuda.memcpy_dtod(nn_device_AB, ann_tmp, ann_size_AB * (np.dtype(np.uint).itemsize))
-			ann_tmp.free()
+		ann_tmp=cuda.mem_alloc(ann_size_BA * (np.dtype(np.uint).itemsize))
+		upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer - 1].width, data_B_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
+		cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * (np.dtype(np.uint).itemsize))
+		ann_tmp.free()
 			
-			ann_tmp=cuda.mem_alloc(ann_size_BA * (np.dtype(np.uint).itemsize))
-			upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer - 1].width, data_B_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
-			cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * (np.dtype(np.uint).itemsize))
-			ann_tmp.free()
+		cuda.memcpy_dtoh(ann_host_AB, ann_device_AB)
+		cuda.memcpy_dtoh(ann_host_BA, ann_device_BA)
 			
-			cuda.memcpy_dtoh(ann_host_AB, ann_device_AB)
-			cuda.memcpy_dtoh(ann_host_BA, ann_device_BA)
+		# free space in device, only need to free pa and pb which are created temporarily image downBAale
+		flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_AL, self.__img_BPL, ann_host_AB, sizes[curr_layer])
+		result_AB = GeneralizedPatchMatch.reconstruct_avg(img_AL, img_BPL, ann_host_AB, sizes[curr_layer])
 			
-			# free space in device, only need to free pa and pb which are created temporarily image downBAale
-			flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_AL, self.__img_BPL, ann_host_AB, sizes[curr_layer])
-			result_AB = GeneralizedPatchMatch.reconstruct_avg(img_AL, img_BPL, ann_host_AB, sizes[curr_layer])
+		out=cv2.resize(result_AB, None, fx=float(self.__ori_A_cols) / cur_A_cols, fy=float(ori_A_rows) / cur_A_rows, interpolation=cv2.INTER_CUBIC)
+		fname="resultAB.png"
+		cv2.imwrite(self.__path_output+fname, out)
 			
-			out=cv2.resize(result_AB, None, fx=(float)ori_A_cols / cur_A_cols, fy=(float)ori_A_rows / cur_A_rows, interpolation=cv2.INTER_CUBIC)
-			fname="resultAB.png"
-			cv2.imwrite(self.__path_output+fname, out)
-			
-			flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
-			result_BA = GeneralizedPatchMatch.reconstruct_avg(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
+		flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
+		result_BA = GeneralizedPatchMatch.reconstruct_avg(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
 
-			out=cv2.resize(result_BA, None, fx=(float)ori_BP_cols / cur_BP_cols, fy=(float)ori_BP_rows / cur_BP_rows, interpolation=cv2.INTER_CUBIC)
-			fname = "resultBA.png"
-			cv2.imwrite(path_output + fname, out)
+		out=cv2.resize(result_BA, None, fx=float(self.__ori_BP_cols) / cur_BP_cols, fy=float(ori_BP_rows) / cur_BP_rows, interpolation=cv2.INTER_CUBIC)
+		fname = "resultBA.png"
+		cv2.imwrite(path_output + fname, out)
 			
-			if (self.__photoTransfer):
-				print "Refining photo transfer."
+		if (self.__photoTransfer):
+			print "Refining photo transfer."
 				
-				origin_A=Cv_func.convertTo(self.__img_AL, np.float32, 1/255.0)
-				origin_B=Cv_func.convertTo(self.__img_BPL, np.float32, 1/255.0)
-				res_AB=Cv_func.convertTo(result_AB, np.float32, 1/255.0)
-				res_BA=Cv_func.convertTo(result_BA, np.float32, 1/255.0)
+			origin_A=Cv_func.convertTo(self.__img_AL, np.float32, 1/255.0)
+			origin_B=Cv_func.convertTo(self.__img_BPL, np.float32, 1/255.0)
+			res_AB=Cv_func.convertTo(result_AB, np.float32, 1/255.0)
+			res_BA=Cv_func.convertTo(result_BA, np.float32, 1/255.0)
 				
-				print "Unfinished code"			
-		}
+			print "Unfinished code"			
+		
 		
 		print "Saving flow result."
 		
 		# save ann
-		{
-			fname = "flowAB.txt"
-			print "Unfinished code for saving ann"
-		}
+	
+		fname = "flowAB.txt"
+		print "Unfinished code for saving ann"
 		
 		params_device_AB.free()
 		ann_device_AB.free()
@@ -597,8 +597,7 @@ class DeepAnalogy:
 		
 		classifier_A.DeleteNet()
 		classifier_B.DeleteNet()
-		
-			
+					
 			
 			
 			

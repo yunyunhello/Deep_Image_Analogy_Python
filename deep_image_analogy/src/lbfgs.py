@@ -144,7 +144,7 @@ class lbfgs:
 			#line search defined in linesearch_gpu.h
 			t_evals=None
 			t_linesearch=None
-			if !self.__gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, t_evals, t_linesearch, d_tmp, d_status):
+			if not self.__gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, t_evals, t_linesearch, d_tmp, d_status):
 				break
 				
 			# Update s, y, rho and H_0
@@ -440,7 +440,7 @@ class lbfgs:
 		tries = 0
 		
 		while 1:
-			tries++
+			tries=tries+1
 			
 			# go from (x + alpha_old * z)
 			# to      (x + alpha     * z)
@@ -470,20 +470,20 @@ class lbfgs:
 			
 			if ret==1:
 				# The Armijo and Strong Wolfe conditions hold
-				retrun True
+				return True
 			
 			if ret==2:
 				# The search interval has become too small
 				stat = self.status.LBFGS_LINE_SEARCH_FAILED
-				retrun False
+				return False
 			
 			if evals>=maxEvals:
 				stat = self.status.LBFGS_REACHED_MAX_EVALS
 				return False
 			
 			
-    def minimize(self, d_x):
-        return self.gpu_lbfgs(d_x)
+	def minimize(self, d_x):
+		return self.gpu_lbfgs(d_x)
 		
 		
 		
