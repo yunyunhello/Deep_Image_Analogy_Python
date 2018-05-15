@@ -405,4 +405,10 @@ extern "C" __global__ void avg_vote(unsigned int * ann, float * pb, float * pc, 
 
 	}
 }
+
+extern "C" __global__ void sub_kernel(const int n, const float* a, const float* b, float* y) {
+  CUDA_KERNEL_LOOP(index, n) {
+    y[index] = a[index] - b[index];
+  }
+}
 '''

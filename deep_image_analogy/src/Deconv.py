@@ -1,4 +1,6 @@
-
+import cost_function as cost_func
+import lbfgs 
+import skcuda.cublas as cublas
 
 def string_replace(s1, s2, s3):
 	pos=0
@@ -26,4 +28,7 @@ def(classifier, layer1, d_y, dim1, layer2, d_x, dim2):
 		if(layer_names[i]==layer2):
 			id2=i
 	
+	func=cost_func.my_cost_function(classifier, m_layer1, d_y, num1, m_layer2, num2, id1, id2)
+	solver=lbfgs.lbfgs(func, cublas.cublasCreate())
+	s=solver.minimize(d_x)
 	

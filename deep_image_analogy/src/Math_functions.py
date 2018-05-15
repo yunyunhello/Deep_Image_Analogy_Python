@@ -88,3 +88,15 @@ def caffe_gpu_div(N, a, b, y):
 	div_kernel=mod.get_function('div_kernel')
 	div_kernel(N, a, b, y, block=(512,1,1),grid=((N+512-1)/512,1,1))
 	
+def caffe_gpu_sub(N, a, b, y): 	
+	mod=SourceModule(math_functions)
+	sub_kernel=mod.get_function('sub_kernel')
+	sub_kernel(N, a, b, y, block=(512,1,1),grid=((N+512-1)/512,1,1))
+	
+def caffe_gpu_asum(n, x):
+	return cublas.cublasSasum(cublas.cublasCreate(), n, x)
+
+
+
+
+
