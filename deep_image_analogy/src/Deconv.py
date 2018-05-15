@@ -29,8 +29,7 @@ def deconv(classifier, layer1, d_y, dim1, layer2, d_x, dim2):
 			id1=i
 		if(layer_names[i]==layer2):
 			id2=i
-	
+
 	func=cost_func.my_cost_function(classifier, m_layer1, d_y, num1, m_layer2, num2, id1, id2)
 	solver=lbfgs.lbfgs(func, cublas.cublasCreate())
 	s=solver.minimize(d_x)
-	

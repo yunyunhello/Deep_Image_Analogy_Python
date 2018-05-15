@@ -383,10 +383,6 @@ class DeepAnalogy:
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
 			blend=mod.get_function('blend')
-			print type(response_A)
-			print type(data_A[curr_layer])
-			print type(data_AP[curr_layer])
-			print type(params_device_AB)
 			blend(response_A, data_A[curr_layer], data_AP[curr_layer], np.float32(weight[curr_layer]), params_device_AB, block=threadsPerBlockAB, grid=blocksPerGridAB)
 			blend(response_BP, data_BP[curr_layer], data_B[curr_layer], np.float32(weight[curr_layer]), params_device_BA, block=threadsPerBlockBA, grid=blocksPerGridBA)
 			
@@ -491,7 +487,6 @@ class DeepAnalogy:
 				target=cuda.mem_alloc(num1*(np.dtype(np.float32).itemsize))
 				avg_vote(ann_device_AB, data_BP[curr_layer], target, params_device_AB,block=threadsPerBlockAB,grid=blocksPerGridAB)
 				Deconv.deconv(classifier_A, params.layers[curr_layer], target, data_A_size[curr_layer], params.layers[next_layer], data_AP[next_layer], data_A_size[next_layer])		
-				
 				
 				
 			

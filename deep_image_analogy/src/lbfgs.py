@@ -43,9 +43,8 @@ class lbfgs:
 				*H0_out = *yDotS / *yDotY;
 		}
 		'''
-		
 		HISTORY_SIZE=4
-		
+	
 		NX = self.__m_costFunction.getNumberOfUnknowns()
 	
 		d_gk=cuda.mem_alloc(NX *(np.dtype(np.float32).itemsize))
@@ -67,18 +66,16 @@ class lbfgs:
 		
 		self.__m_costFunction.f_gradf(d_x, d_fk, d_gk)
 		
-		
 		#??? ???
 		#CudaCheckError();
 		#cudaDeviceSynchronize();
 		cuda.Context.synchronize()
-		
 		evals = 1
 		#status stat = LBFGS_REACHED_MAX_ITER;
 		
 		one=np.array([1.0],dtype=np.float32)
 		cuda.memcpy_htod(d_H0,one)
-		
+	
 		for it in range(self.__m_maxIter):	
 			#Check for convergence
 			gkNormSquared=np.empty(1,dtype=np.float32)
@@ -89,6 +86,7 @@ class lbfgs:
 			
 			if (gkNormSquared[0] < (self.__m_gradientEps * self.__m_gradientEps) * max(xkNormSquared, 1.0)):
 				stat = self.status.LBFGS_BELOW_GRADIENT_EPS
+				print "break" #Debug Info: break Here
 				break
 			
 			#Find search direction
@@ -101,6 +99,7 @@ class lbfgs:
 			update1=mod.get_function('update1')
 			update2=mod.get_function('update2')
 			update3=mod.get_function('update3')
+			print "Here"
 			for i in range(1,MAX_IDX+1):
 				idx = (it - i) % HISTORY_SIZE
 				self.__dispatch_dot(NX, d_tmp, d_s + idx * NX, d_z) #tmp = sDotZ
@@ -136,6 +135,7 @@ class lbfgs:
 				
 				i=i-1
 			
+			print "HAHA"	
 			cuda.memcpy_dtod(d_fkm1, d_fk, 1  * (np.dtype(np.float32).itemsize)) #fkm1 = fk
 			cuda.memcpy_dtod(d_gkm1, d_gk, NX * (np.dtype(np.float32).itemsize)) #gkm1 = gk
 			
@@ -144,8 +144,8 @@ class lbfgs:
 			#line search defined in linesearch_gpu.h
 			t_evals=None
 			t_linesearch=None
-			gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, t_evals, t_linesearch, d_tmp, d_status)
-			
+			self.__gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, t_evals, t_linesearch, d_tmp, d_status)
+			print "Hi"	
 			
 	def __dispatch_dot(self, n, dst, d_x, d_y):
 		cublas.cublasSdot(self.__m_cublasHandle, int(n), d_x, 1, d_y, 1)
@@ -162,8 +162,8 @@ class lbfgs:
 		
 		cublas.cublasSaxpy(self.__m_cublasHandle, int(n), a, d_x, 1, d_dst, 1)
 		
-	def gpu_linesearch(self, d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, step, timer_evals, timer_linesearch, d_tmp, d_status):	
-						   
+	def __gpu_linesearch(self, d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, step, timer_evals, timer_linesearch, d_tmp, d_status):	
+		print "Enter to gpu_linesearch"					   
 		#Step, function value and directional derivative at the starting point of the line search
 		d_phi_prime_0=cuda.mem_alloc(np.dtype(np.float32).itemsize)		
 
@@ -210,6 +210,7 @@ class lbfgs:
 			# xk += (alpha - alpha_old) * z;
 			
 			self.__dispatch_axpy(NX, d_x, d_x, d_z, d_alpha_correction)
+			print "Here!"
 			break
 		
 		
