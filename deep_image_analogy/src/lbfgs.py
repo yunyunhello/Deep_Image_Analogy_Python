@@ -3,21 +3,23 @@ import pycuda.driver as cuda
 import numpy as np
 import skcuda.cublas as cublas
 
-
+"""
+class status(Enum):
+	LBFGS_BELOW_GRADIENT_EPS=0
+	LBFGS_REACHED_MAX_ITER=1
+	LBFGS_REACHED_MAX_EVALS=2
+	LBFGS_LINE_SEARCH_FAILED=3
+"""
 
 class lbfgs:
 	def __init__(self, cf, cublasHandle):
 		self.__m_costFunction=cf
 		self.__m_maxIter=100
-		self.__m_maxEvals=max()
-		self.__m_gradientEps=np.float(1e-4)
+		#self.__m_maxEvals=max()
+		self.__m_gradientEps=np.float32(1e-4)
 		self.__m_cublasHandle=cublasHandle
-		self.status=Enum('status',(LBFGS_BELOW_GRADIENT_EPS, LBFGS_REACHED_MAX_ITER, LBFGS_REACHED_MAX_EVALS, LBFGS_LINE_SEARCH_FAILED))
+		self.status=Enum('status',('LBFGS_BELOW_GRADIENT_EPS', 'LBFGS_REACHED_MAX_ITER', 'LBFGS_REACHED_MAX_EVALS', 'LBFGS_LINE_SEARCH_FAILED'))
 	
-	
-	
-	def minimize(self, d_x):
-		return gpu_lbfgs(d_x)
 	
 	def gpu_lbfgs(self, d_x):
 		update='''
@@ -74,7 +76,7 @@ class lbfgs:
 		evals = 1
 		#status stat = LBFGS_REACHED_MAX_ITER;
 		
-		one = np.float32(1.0)
+		one=np.array([1.0],dtype=np.float32)
 		cuda.memcpy_htod(d_H0,one)
 		
 		for it in range(self.__m_maxIter):	
@@ -82,11 +84,11 @@ class lbfgs:
 			gkNormSquared=np.empty(1,dtype=np.float32)
 			xkNormSquared=np.empty(1,dtype=np.float32)
 			
-			self.__dispatch_dot(NX, &xkNormSquared, d_x,  d_x)
-			self.__dispatch_dot(NX, &gkNormSquared, d_gk, d_gk)
+			self.__dispatch_dot(NX, xkNormSquared, d_x,  d_x)
+			self.__dispatch_dot(NX, gkNormSquared, d_gk, d_gk)
 			
 			if (gkNormSquared[0] < (self.__m_gradientEps * self.__m_gradientEps) * max(xkNormSquared, 1.0)):
-				stat = self.__status.LBFGS_BELOW_GRADIENT_EPS
+				stat = self.status.LBFGS_BELOW_GRADIENT_EPS
 				break
 			
 			#Find search direction
@@ -142,7 +144,7 @@ class lbfgs:
 			#line search defined in linesearch_gpu.h
 			t_evals=None
 			t_linesearch=None
-			gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, self.__m_maxEvals, t_evals, t_linesearch, d_tmp, d_status))
+			gpu_linesearch(d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, d_step, t_evals, t_linesearch, d_tmp, d_status)
 			
 			
 	def __dispatch_dot(self, n, dst, d_x, d_y):
@@ -160,7 +162,7 @@ class lbfgs:
 		
 		cublas.cublasSaxpy(self.__m_cublasHandle, int(n), a, d_x, 1, d_dst, 1)
 		
-	def gpu_linesearch(self, d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, step, maxEvals, timer_evals, timer_linesearch, d_tmp, d_status):	
+	def gpu_linesearch(self, d_x, d_z, d_fk, d_gk, evals, d_gkm1, d_fkm1, stat, step, timer_evals, timer_linesearch, d_tmp, d_status):	
 						   
 		#Step, function value and directional derivative at the starting point of the line search
 		d_phi_prime_0=cuda.mem_alloc(np.dtype(np.float32).itemsize)		
@@ -171,15 +173,15 @@ class lbfgs:
 		d_alpha_correction=cuda.mem_alloc(np.dtype(np.float32).itemsize)
 		
 		#Directional derivative at alpha
-		d_phi_prime_alpha=cuda.mem_alloc(np.dtype(np.float32).itemsize
+		d_phi_prime_alpha=cuda.mem_alloc(np.dtype(np.float32).itemsize)
 		
 		# Low and high search interval boundaries
-		alpha_low=cuda.mem_alloc(np.dtype(np.float32).itemsize
-		d_alpha_high=cuda.mem_alloc(np.dtype(np.float32).itemsize
-		d_phi_low=cuda.mem_alloc(np.dtype(np.float32).itemsize
-		d_phi_high=cuda.mem_alloc(np.dtype(np.float32).itemsize
-		d_phi_prime_low=cuda.mem_alloc(np.dtype(np.float32).itemsize
-		d_phi_prime_high=cuda.mem_alloc(np.dtype(np.float32).itemsize	
+		alpha_low=cuda.mem_alloc(np.dtype(np.float32).itemsize)
+		d_alpha_high=cuda.mem_alloc(np.dtype(np.float32).itemsize)
+		d_phi_low=cuda.mem_alloc(np.dtype(np.float32).itemsize)
+		d_phi_high=cuda.mem_alloc(np.dtype(np.float32).itemsize)
+		d_phi_prime_low=cuda.mem_alloc(np.dtype(np.float32).itemsize)
+		d_phi_prime_high=cuda.mem_alloc(np.dtype(np.float32).itemsize)	
 						   
 						   
 		NX = self.__m_costFunction.getNumberOfUnknowns()
@@ -188,7 +190,7 @@ class lbfgs:
 		self.__dispatch_dot(NX, phi_prime_0, d_z, d_gk) #phi_prime_0 = z' * gk
 		
 		if phi_prime_0[0]>=0:
-			stat=lbfgs::LBFGS_LINE_SEARCH_FAILED
+			stat=status.LBFGS_LINE_SEARCH_FAILED
 			return False
 			
 		cuda.memcpy_htod(d_phi_prime_0, phi_prime_0, np.dtype(np.float32).itemsize)
@@ -211,9 +213,10 @@ class lbfgs:
 			break
 		
 		
+	
 
-		
-		
-		
+        def minimize(self, d_x):
+                return self.gpu_lbfgs(d_x)
+	
 		
 		

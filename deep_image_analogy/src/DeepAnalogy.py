@@ -13,6 +13,7 @@ import caffe
 import Math_functions as math_func
 import skcuda.cublas as cublas
 import Cv_func
+import Deconv
 
 class parameters:
 	def __init__(self):
@@ -489,7 +490,7 @@ class DeepAnalogy:
 				target=[]
 				target=cuda.mem_alloc(num1*(np.dtype(np.float32).itemsize))
 				avg_vote(ann_device_AB, data_BP[curr_layer], target, params_device_AB,block=threadsPerBlockAB,grid=blocksPerGridAB)
-				
+				Deconv.deconv(classifier_A, params.layers[curr_layer], target, data_A_size[curr_layer], params.layers[next_layer], data_AP[next_layer], data_A_size[next_layer])		
 				
 				
 				

@@ -1,17 +1,19 @@
 import pycuda.driver as cuda
 import Math_functions as math_func
 import numpy as np
+from abc import ABCMeta, abstractmethod
 
 class cost_function:
 	def __init__(self, numDimensions):
 		self._m_numDimensions=numDimensions
-		
+
+	__metaclass__=ABCMeta		
 	@abstractmethod 
 	def f_gradf(d_x, d_f, d_gradf):
 		pass
 	
 	def getNumberOfUnknowns(self):
-		return m_numDimensions
+		return self._m_numDimensions
 		
 class my_cost_function(cost_function):
 	def __init__(self, classifier, layer1, d_y, num1, layer2, num2, id1, id2):
@@ -27,16 +29,17 @@ class my_cost_function(cost_function):
 		self.__m_layer2 = layer2
 	
 	def f_gradf(self, d_x, d_f, d_gradf):
-		self.__m_classifier.net_._forward(self.__m_id2 + 1, m_id1)
+		self.__m_classifier.net_._forward(self.__m_id2 + 1, self.__m_id1)
 		
 		src=cuda.to_device(self.__m_classifier.net_.blobs[self.__m_layer1].data)
 		diff=src
-		math_func.caffe_gpu_sub(self.__m_num1, src, m_dy, diff)
+		math_func.caffe_gpu_sub(self.__m_num1, src, self.__m_dy, diff)
 		
 		diff2=cuda.mem_alloc(self.__m_num1*(np.dtype(np.float).itemsize))
-		math_func.caffe_gpu_mul(m_num1, diff, diff, diff2)
+		math_func.caffe_gpu_mul(self.__m_num1, diff, diff, diff2)
 		
-		total=math_func.caffe_gpu_asum(m_num1, diff2)
+		total=np.empty(1,dtype=np.float32)
+		total[0]=math_func.caffe_gpu_asum(self.__m_num1, diff2)
 		
 		
 		self.__m_classifier.net_._backward(self.__m_id1, self.__m_id2 + 1)

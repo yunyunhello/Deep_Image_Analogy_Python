@@ -18,6 +18,13 @@ __global__ void mul_kernel(const int n, const float* a,
   }
 }
 
+__global__ void sub_kernel(const int n, const float* a,
+    const float* b, float* y) {
+  CUDA_KERNEL_LOOP(index, n) {
+    y[index] = a[index] - b[index];
+  }
+}
+
 __global__ void set_kernel(const int n, const float alpha, float* y) {
   CUDA_KERNEL_LOOP(index, n) {
     y[index] = alpha;
@@ -94,7 +101,7 @@ def caffe_gpu_sub(N, a, b, y):
 	sub_kernel(N, a, b, y, block=(512,1,1),grid=((N+512-1)/512,1,1))
 	
 def caffe_gpu_asum(n, x):
-	return cublas.cublasSasum(cublas.cublasCreate(), n, x)
+	return cublas.cublasSasum(cublas.cublasCreate(), n, x, 1)
 
 
 

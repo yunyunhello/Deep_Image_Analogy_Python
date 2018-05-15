@@ -3,6 +3,12 @@
 GeneralizedPatchMatch_cu='''
 #include "curand_kernel.h"
 #include "float.h"
+
+#define CUDA_KERNEL_LOOP(i, n) \
+  for (int i = blockIdx.x * blockDim.x + threadIdx.x; \
+       i < (n); \
+       i += blockDim.x * gridDim.x)
+
 __host__ __device__ int clamp(int x, int x_max, int x_min) {//assume x_max >= x_min
 	if (x > x_max)
 	{
