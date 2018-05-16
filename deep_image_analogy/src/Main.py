@@ -7,10 +7,10 @@ dp=DeepAnalogy.DeepAnalogy()
 if(len(sys.argv)!=9):
 	model="models/"
 	
-	#A="demo/content.png"
-	#BP="demo/style.png"
-	A="example/1photo2style/A/A44.png"
-	BP="example/1photo2style/BP/BP44.png"
+	A="demo/content.png"
+	BP="demo/style.png"
+	#A="example/1photo2style/A/A44.png"
+	#BP="example/1photo2style/BP/BP44.png"
 	#A="example/2style2style/A/A15.png"
 	#BP="example/2style2style/BP/BP15.png"
 	output="demo/output/"
