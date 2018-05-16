@@ -174,20 +174,20 @@ class DeepAnalogy:
 			sys.exit()
 			
 		#Recording the number of rows and columns of transformed images	
-		cur_A_cols=ori_AL.shape[1]
-		cur_A_rows=ori_AL.shape[0]
-		cur_BP_cols=ori_BPL.shape[1]
-		cur_BP_rows=ori_BPL.shape[0]
+		self.__cur_A_cols=ori_AL.shape[1]
+		self.__cur_A_rows=ori_AL.shape[0]
+		self.__cur_BP_cols=ori_BPL.shape[1]
+		self.__cur_BP_rows=ori_BPL.shape[0]
 		
 		#If original images are transformed, notify this change
 		if self.__ori_A_cols!=ori_AL.shape[1]:
-			print "The input image A has been resized to %d x %d.\n" % (cur_A_cols,cur_A_rows)
+			print "The input image A has been resized to %d x %d.\n" % (self.__cur_A_cols,self.__cur_A_rows)
 		if self.__ori_BP_cols!=ori_BPL.shape[1]:
-			print "The input image B prime has been resized to %d x %d.\n" % (cur_BP_cols,cur_BP_rows)
+			print "The input image B prime has been resized to %d x %d.\n" % (self.__cur_BP_cols, self.__cur_BP_rows)
 		
 		#???
-		self.__img_AL=cv2.resize(ori_AL, None, fx=float(cur_A_cols)/ori_AL.shape[1],fy=float(cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
-		self.__img_BPL=cv2.resize(ori_AL, None, fx=float(cur_BP_cols)/ori_BPL.shape[1],fy=float(cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
+		self.__img_AL=cv2.resize(ori_AL, None, fx=float(self.__cur_A_cols)/ori_AL.shape[1],fy=float(self.__cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
+		self.__img_BPL=cv2.resize(ori_AL, None, fx=float(self.__cur_BP_cols)/ori_BPL.shape[1],fy=float(self.__cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
 		
 	def ComputeAnn(self):
 		if self.__img_BPL is None or self.__img_AL is None:
@@ -546,21 +546,24 @@ class DeepAnalogy:
 			
 		cuda.memcpy_dtoh(ann_host_AB, ann_device_AB)
 		cuda.memcpy_dtoh(ann_host_BA, ann_device_BA)
+		
+		#print "HERE!!!"
+		#print self.__img_AL.shape #(512, 683, 3)
 			
 		# free space in device, only need to free pa and pb which are created temporarily image downBAale
 		flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_AL, self.__img_BPL, ann_host_AB, sizes[curr_layer])
-		result_AB = GeneralizedPatchMatch.reconstruct_avg(img_AL, img_BPL, ann_host_AB, sizes[curr_layer])
+		result_AB = GeneralizedPatchMatch.reconstruct_avg(self.__img_AL, self.__img_BPL, ann_host_AB, sizes[curr_layer])
 			
-		out=cv2.resize(result_AB, None, fx=float(self.__ori_A_cols) / cur_A_cols, fy=float(ori_A_rows) / cur_A_rows, interpolation=cv2.INTER_CUBIC)
+		out=cv2.resize(result_AB, None, fx=float(self.__ori_A_cols) / self.__cur_A_cols, fy=float(self.__ori_A_rows) / self.__cur_A_rows, interpolation=cv2.INTER_CUBIC)
 		fname="resultAB.png"
 		cv2.imwrite(self.__path_output+fname, out)
 			
 		flow = GeneralizedPatchMatch.reconstruct_dflow(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
 		result_BA = GeneralizedPatchMatch.reconstruct_avg(self.__img_BPL, self.__img_AL, ann_host_BA, sizes[curr_layer]);
 
-		out=cv2.resize(result_BA, None, fx=float(self.__ori_BP_cols) / cur_BP_cols, fy=float(ori_BP_rows) / cur_BP_rows, interpolation=cv2.INTER_CUBIC)
+		out=cv2.resize(result_BA, None, fx=float(self.__ori_BP_cols) / self.__cur_BP_cols, fy=float(self.__ori_BP_rows) / self.__cur_BP_rows, interpolation=cv2.INTER_CUBIC)
 		fname = "resultBA.png"
-		cv2.imwrite(path_output + fname, out)
+		cv2.imwrite(self.__path_output + fname, out)
 			
 		if (self.__photoTransfer):
 			print "Refining photo transfer."
@@ -592,7 +595,7 @@ class DeepAnalogy:
 			data_BP[i].free()
 		
 		finish=time.clock()
-		duration = (double)(finish - start)
+		duration = float(finish - start)
 		print "Finished finding ann. Time : %s" % str(duration)
 		
 		classifier_A.DeleteNet()

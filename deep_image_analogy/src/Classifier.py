@@ -102,5 +102,5 @@ class Classifier:
 		#print "The modifid input_data[0,0,0,0]"
 		#print input_data[0,0,0,0]
 	
-	def DeleteNet():
+	def DeleteNet(self):
 		del self.net_

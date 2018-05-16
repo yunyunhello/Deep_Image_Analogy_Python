@@ -1,4 +1,5 @@
 
+import numpy as np
 
 GeneralizedPatchMatch_cu='''
 #include "curand_kernel.h"
@@ -420,19 +421,18 @@ extern "C" __global__ void sub_kernel(const int n, const float* a, const float* 
 '''
 
 def INT_TO_X(v):
-	return (v)&((1 << 11) - 1)
+	return (v)& np.uint(((1 << 11) - 1))
 	
 def INT_TO_Y(v):
-	return (v >> 11)&((1 << 11) - 1)
+	return (v >> np.uint(11)) & np.uint((1 << 11) - 1)
 
 def reconstruct_dflow(a, b, ann, patch_w):
 	flow=a.copy()
 	for ay in range(a.shape[0]):
 		for ax in range(a.shape[1]):
 			v = ann[ay*a.shape[1] + ax]
-			print "HERE!!!"
-			print v
-			print type(v)
+		#	print "HERE!!!"
+		#	print v
 			xbest = INT_TO_X(v)
 			ybest = INT_TO_Y(v)
 			flow[ay,ax,0]=np.uint8(255 * (float(ax - xbest + b.shape[1] - 1) / (2 * b.shape[1])))
@@ -448,7 +448,7 @@ def reconstruct_avg(a, b, ann, patch_w):
 		for ax in range(a.shape[1]):
 			point_num = 0
 			
-			dist_tmp=np.zero(3, dtype=np.float32)
+			dist_tmp=np.zeros(3, dtype=np.float32)
 			
 			for dx in range(-patch_w / 2, patch_w / 2):
 				for dy in range(-patch_w / 2, patch_w / 2):
@@ -457,11 +457,11 @@ def reconstruct_avg(a, b, ann, patch_w):
 						xp = INT_TO_X(vp)
 						yp = INT_TO_Y(vp)
 						
-					if (xp - dx) < b.shape[1] and (xp - dx) >= 0 and (yp - dy) < b.shape[0] and (yp - dy) >= 0:
-						for dc in range(3):
-							dist_tmp[dc] += b[yp - dy, xp - dx, dc]
+						if (xp - dx) < b.shape[1] and (xp - dx) >= 0 and (yp - dy) < b.shape[0] and (yp - dy) >= 0:
+							for dc in range(3):
+								dist_tmp[dc] += b[np.int(yp - dy), np.int(xp - dx), dc]
 							
-						point_num=point_num+1
+							point_num=point_num+1
 						
 			for dc in range(3):
 				c[ay, ax, dc]= dist_tmp[dc]/point_num
