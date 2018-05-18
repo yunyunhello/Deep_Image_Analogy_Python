@@ -181,13 +181,22 @@ class DeepAnalogy:
 		
 		#If original images are transformed, notify this change
 		if self.__ori_A_cols!=ori_AL.shape[1]:
-			print "The input image A has been resized to %d x %d.\n" % (self.__cur_A_cols,self.__cur_A_rows)
+			print "The input image A has been resized to %d x %d.\n" % (self.__cur_A_cols,self.__cur_A_rows) #??? exchange cols and rows ???
 		if self.__ori_BP_cols!=ori_BPL.shape[1]:
 			print "The input image B prime has been resized to %d x %d.\n" % (self.__cur_BP_cols, self.__cur_BP_rows)
 		
 		#???
 		self.__img_AL=cv2.resize(ori_AL, None, fx=float(self.__cur_A_cols)/ori_AL.shape[1],fy=float(self.__cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
 		self.__img_BPL=cv2.resize(ori_AL, None, fx=float(self.__cur_BP_cols)/ori_BPL.shape[1],fy=float(self.__cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
+		
+		# TEST
+		#print self.__img_AL.shape
+		#print self.__img_AL[511,682,:]
+		#print self.__cur_A_cols
+		#print self.__cur_A_rows
+		#print self.__cur_BP_cols
+		#print self.__cur_BP_rows
+
 		
 	def ComputeAnn(self):
 		if self.__img_BPL is None or self.__img_AL is None:
@@ -276,7 +285,12 @@ class DeepAnalogy:
 		#print "The shape of img_A: "
 		#print img_A.shape #(256, 342, 3)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
-			
+
+                #print img_A.shape
+                #print self.__img_AL[511,682,:]
+		#print data_A
+		#print data_A_size
+		
 		data_B=[]
 		data_BP=[]
 		data_B_size=[]
@@ -377,8 +391,13 @@ class DeepAnalogy:
 			response2=np.ndarray(shape=(temp2.shape[0],temp2.shape[1]),dtype=np.float32)
 			
 			cuda.memcpy_dtoh(response1, response_A)
-			cuda.memcpy_dtoh(response2,response_BP)
-			
+			cuda.memcpy_dtoh(response2, response_BP)
+		
+                   	print response1.shape
+			print response1[0,0:10]
+			print response2.shape
+			print response2[0,0:10]
+	
 			response_byte1=Cv_func.convertTo(response1,np.uint8,255)
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
@@ -599,8 +618,7 @@ class DeepAnalogy:
 		print "Finished finding ann. Time : %s" % str(duration)
 		
 		classifier_A.DeleteNet()
-		classifier_B.DeleteNet()
-					
+		classifier_B.DeleteNet()			
 			
 			
 			

@@ -18,13 +18,13 @@ class Classifier:
 		#Load the network
 		self.net_=caffe.Net(model_file, trained_file, caffe.TEST)
 		#???
-		print "Enter Clssifier.py\n"
-		print self.net_.blobs['data'].data.shape #(1,3,224,224)
+		#print "Enter Clssifier.py\n"
+		#print self.net_.blobs['data'].data.shape #(1,3,224,224)
 		log.check_eq(len(self.net_.inputs),1,"Network should have exactly one input.")
 		log.check_eq(len(self.net_.outputs),1,"Network should have exactly one output.")
 		self.num_channels_=self.net_.blobs['data'].shape[1]
-		print "self.num_channels_:"
-		print self.num_channels_
+		#print "self.num_channels_:" #3
+		#print self.num_channels_
 		log.check(self.num_channels_==3 or self.num_channels_==1, "Input layer should have 1 or 3 channels.")
 		#???
 		self.mean_=(103.939, 116.779, 123.68) #type tuple
@@ -38,10 +38,10 @@ class Classifier:
 		
 		input_layer=self.net_.blobs['data']
 		
-		print input_layer.shape #<caffe._caffe.IntVec object at 0x7f4c3fa45f50>
+		#print input_layer.shape #<caffe._caffe.IntVec object at 0x7f4c3fa45f50>
 		input_layer.reshape(1,self.num_channels_,self.input_geometry_.height,self.input_geometry_.width)
-	    	print "net_.blobs['data'].data.shape:" 
-		print input_layer.data.shape #(1, 3, 256, 342)
+	    	#print "net_.blobs['data'].data.shape:" 
+		#print input_layer.data.shape #(1, 3, 256, 342)
 		
 		#Forward dimension change to all layers.
 		self.net_.reshape()
@@ -87,7 +87,7 @@ class Classifier:
 		
 		#??? Only dealing with 3 channels
 		sample_normalized=np.ndarray(shape=sample_float.shape,dtype="float32")
-		print type(self.mean_[0])#type float
+		#print type(self.mean_[0])#type float
 		for i in range(self.num_channels_):
 			sample_normalized[:,:,i]=cv2.subtract(sample_float[:,:,i],self.mean_[i])
 		
