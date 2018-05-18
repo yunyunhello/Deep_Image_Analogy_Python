@@ -286,10 +286,17 @@ class DeepAnalogy:
 		#print img_A.shape #(256, 342, 3)
 		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
 
-                #print img_A.shape
-                #print self.__img_AL[511,682,:]
+        #print img_A.shape
+        #print self.__img_AL[511,682,:]
 		#print data_A
 		#print data_A_size
+		
+		#TEST
+		print "TEST START"
+		test=np.ndarray(shape=(data_A_size[0].channel,data_A_size[0].height,data_A_size[0].width),dtype=np.float32)
+		cuda.memcpy_dtoh(test,data_d[0])
+		#print test
+		print "TEST END"
 		
 		data_B=[]
 		data_BP=[]

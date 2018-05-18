@@ -63,9 +63,7 @@ class Classifier:
 			gpu_data=cuda.to_device(output_layer.data)
 			cuda.memcpy_dtod(data_d[i],gpu_data,channel*height*width*np.dtype(np.float32).itemsize)
 			
-			data_s.append(gpu_data)
-		
-	
+			data_s.append(gpu_data)	
 
 	"""Wrap the input layer of the network in separate np.ndarray(one per channel). This way we save 
 	one memcpy operation and we don't need to rely on cudaMemcpy2D. The last preprocessing operation 
