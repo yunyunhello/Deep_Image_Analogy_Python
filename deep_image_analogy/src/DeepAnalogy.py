@@ -187,17 +187,17 @@ class DeepAnalogy:
 		
 		#???
 		self.__img_AL=cv2.resize(ori_AL, None, fx=float(self.__cur_A_cols)/ori_AL.shape[1],fy=float(self.__cur_A_rows)/ori_AL.shape[0],interpolation=cv2.INTER_CUBIC)
-		self.__img_BPL=cv2.resize(ori_AL, None, fx=float(self.__cur_BP_cols)/ori_BPL.shape[1],fy=float(self.__cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
+		self.__img_BPL=cv2.resize(ori_BPL, None, fx=float(self.__cur_BP_cols)/ori_BPL.shape[1],fy=float(self.__cur_BP_rows)/ori_BPL.shape[0],interpolation=cv2.INTER_CUBIC)
 		
-		# TEST
+		# PASS
 		#print self.__img_AL.shape
 		#print self.__img_AL[511,682,:]
 		#print self.__cur_A_cols
 		#print self.__cur_A_rows
 		#print self.__cur_BP_cols
 		#print self.__cur_BP_rows
-
-		
+		print self.__img_AL[0,0,:]
+		print self.__img_BPL[0,0,:]	
 	def ComputeAnn(self):
 		if self.__img_BPL is None or self.__img_AL is None:
 			cv2.waitKey(0)
@@ -206,7 +206,7 @@ class DeepAnalogy:
 		#???
 		param_size=8
 		
-		params_host=np.empty(param_size,dtype=np.int)
+		params_host=np.empty(param_size,dtype=np.int32)
 
 		params=parameters()
 		params.layers.append("conv5_1")
@@ -242,12 +242,12 @@ class DeepAnalogy:
 		weight.append(0.0)
 		
 		sizes=[]
-		sizes.append(3)
-		sizes.append(3)
-		sizes.append(3)
-		sizes.append(5)
-		sizes.append(5)
-		sizes.append(3)
+		sizes.append(np.int32(3))
+		sizes.append(np.int32(3))
+		sizes.append(np.int32(3))
+		sizes.append(np.int32(5))
+		sizes.append(np.int32(5))
+		sizes.append(np.int32(3))
 		
 		params.iter=10
 		
@@ -259,22 +259,23 @@ class DeepAnalogy:
 		#???
 		ranges=[]
 		if img_A.shape[1]>img_A.shape[0]:
-			ranges.append(img_A.shape[1]/16)
+			ranges.append(np.int32(img_A.shape[1]/16))
 		else:
-			ranges.append(img_A.shape[0]/16)
+			ranges.append(np.int32(img_A.shape[0]/16))
 			
-		ranges.append(6)
-		ranges.append(6)
-		ranges.append(4)
-		ranges.append(4)
-		ranges.append(2)
+		ranges.append(np.int32(6))
+		ranges.append(np.int32(6))
+		ranges.append(np.int32(4))
+		ranges.append(np.int32(4))
+		ranges.append(np.int32(2))
 		
 		#load caffe
 		#???
 		#::google::InitGoogleLogging("deepanalogy")
 		model_file = "vgg19/VGG_ILSVRC_19_layers_deploy.prototxt"
 		trained_file = "vgg19/VGG_ILSVRC_19_layers.caffemodel"
-		
+
+	
 		classifier_A=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		classifier_B=Classifier.Classifier(self.__path_model + model_file, self.__path_model + trained_file)
 		
@@ -282,44 +283,47 @@ class DeepAnalogy:
 		data_AP=[]
 		data_A_size=[]		
 		
-		#print "The shape of img_A: "
-		#print img_A.shape #(256, 342, 3)
-		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)	# type(img_A) numpy.ndarray
+		classifier_A.Predict(img_A, params.layers, data_AP, data_A, data_A_size)
+		
+		#PASS
+#		print "TEST START"
+#		test=np.ndarray(shape=(data_A_size[5].channel,data_A_size[5].height,data_A_size[5].width),dtype=np.float32)
+#		cuda.memcpy_dtoh(test,data_AP[5])
+#		print test[0,0,:]
+#		print "TEST END"
 
-        #print img_A.shape
-        #print self.__img_AL[511,682,:]
-		#print data_A
-		#print data_A_size
-		
-		#TEST
-		print "TEST START"
-		test=np.ndarray(shape=(data_A_size[0].channel,data_A_size[0].height,data_A_size[0].width),dtype=np.float32)
-		cuda.memcpy_dtoh(test,data_d[0])
-		#print test
-		print "TEST END"
-		
 		data_B=[]
 		data_BP=[]
 		data_B_size=[]
 		classifier_B.Predict(img_BP, params.layers, data_B, data_BP, data_B_size)
+
+
+                # PASS
+#                print "TEST START"
+#                print type(img_BP)
+#                print img_BP[0,0,:]
+#                test2=np.ndarray(shape=(data_B_size[5].channel,data_B_size[5].height,data_B_size[5].width),dtype=np.float32)
+#                cuda.memcpy_dtoh(test2,data_BP[5])
+#                print test2[0,0,0:43]
+#                print "TEST END"
 
 		start=time.clock()
 		
 		ann_size_AB=self.__img_AL.shape[0]*self.__img_AL.shape[1]
 		ann_size_BA=self.__img_BPL.shape[0]*self.__img_BPL.shape[1]
 		
-		ann_host_AB=np.empty(ann_size_AB,dtype=np.uint)
-		annd_host_AB=np.empty(ann_size_AB,dtype=np.float)
-		ann_host_BA=np.empty(ann_size_BA,dtype=np.uint)
-		annd_host_BA=np.empty(ann_size_BA,dtype=np.float)
+		ann_host_AB=np.empty(ann_size_AB,dtype=np.uint32)
+		annd_host_AB=np.empty(ann_size_AB,dtype=np.float32)
+		ann_host_BA=np.empty(ann_size_BA,dtype=np.uint32)
+		annd_host_BA=np.empty(ann_size_BA,dtype=np.float32)
 		
 		
-		params_device_AB=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
-		params_device_BA=cuda.mem_alloc(param_size*(np.dtype(np.int).itemsize))
-		ann_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
-		annd_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.float).itemsize))
-		ann_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
-		annd_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.float).itemsize))
+		params_device_AB=cuda.mem_alloc(param_size*(np.dtype(np.int32).itemsize))
+		params_device_BA=cuda.mem_alloc(param_size*(np.dtype(np.int32).itemsize))
+		ann_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint32).itemsize))
+		annd_device_AB=cuda.mem_alloc(ann_size_AB*(np.dtype(np.float32).itemsize))
+		ann_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint32).itemsize))
+		annd_device_BA=cuda.mem_alloc(ann_size_BA*(np.dtype(np.float32).itemsize))
 		
 		numlayer=len(params.layers)
 		
@@ -346,7 +350,15 @@ class DeepAnalogy:
 			params_host[4]=data_A_size[curr_layer].width
 			
 			#copy to device
-			cuda.memcpy_htod(params_device_BA, params_host)			
+			cuda.memcpy_htod(params_device_BA, params_host)					
+			#PASS
+#			print "TEST START"
+#			test_params_host=np.empty(8,dtype=np.int)
+#			cuda.memcpy_dtoh(test_params_host,params_device_AB)
+#			print test_params_host
+#			print "TEST END"
+
+	
 			#set device pa, device pb, device ann and device annd
 			blocksPerGridAB=(data_A_size[curr_layer].width / 20 + 1, data_A_size[curr_layer].height / 20 + 1, 1)
 			threadsPerBlockAB=(20, 20, 1)
@@ -354,39 +366,59 @@ class DeepAnalogy:
 			blocksPerGridBA=(data_B_size[curr_layer].width / 20 + 1, data_B_size[curr_layer].height / 20 + 1, 1)
 			threadsPerBlockBA=(20, 20, 1)
 			ann_size_BA = data_B_size[curr_layer].width* data_B_size[curr_layer].height
-			
 			mod=SourceModule(GeneralizedPatchMatch.GeneralizedPatchMatch_cu,no_extern_c=1)
 			#initialize ann if needed
 			if curr_layer==0:
 				initialAnn_kernel=mod.get_function('initialAnn_kernel')
-				initialAnn_kernel(ann_device_AB, params_device_AB, block=threadsPerBlockAB,grid=threadsPerBlockAB)
-				initialAnn_kernel(ann_device_BA, params_device_BA, block=threadsPerBlockBA,grid=threadsPerBlockBA)
+				initialAnn_kernel(ann_device_AB, params_device_AB, block=threadsPerBlockAB,grid=blocksPerGridAB)
+				initialAnn_kernel(ann_device_BA, params_device_BA, block=threadsPerBlockBA,grid=blocksPerGridBA)
+				#PASS
+#				print "TEST START"
+#				test_ann_device_AB=np.empty(ann_size_AB,dtype=np.uint32)
+#				cuda.memcpy_dtoh(test_ann_device_AB,ann_device_AB)
+#				print test_ann_device_AB
+#				print "------------------------"
+#                               test_ann_device_BA=np.empty(ann_size_BA,dtype=np.uint32)
+#                               cuda.memcpy_dtoh(test_ann_device_BA,ann_device_BA)
+#                               print test_ann_device_BA
+# 				print "START END"
 			else:
 			#upsampling, notice this block's dimension is twice the ann at this point
-				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint).itemsize))
+				ann_tmp=cuda.mem_alloc(ann_size_AB*(np.dtype(np.uint32).itemsize))
 					
-				upSample_kernel=mod.get_function('upSample_kernel')
-				#print data_A_size[curr_layer - 1].width
-				#print type(data_A_size[curr_layer - 1].width)
-				#print data_A_size[curr_layer - 1].height
-				#print type(data_A_size[curr_layer - 1].height)
-				#get new ann_device
 				upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB,grid=blocksPerGridAB)
-				cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * np.dtype(np.uint).itemsize)
+				cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * np.dtype(np.uint32).itemsize)
 				ann_tmp.free()
+
 				
-				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint).itemsize))
+				ann_tmp=cuda.mem_alloc(ann_size_BA*(np.dtype(np.uint32).itemsize))
 				upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer - 1].width, data_B_size[curr_layer - 1].height, block=threadsPerBlockBA,grid=blocksPerGridBA)
-				cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * np.dtype(np.uint).itemsize)
+				cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * np.dtype(np.uint32).itemsize)
+
+				#TEST
+                                print "TEST START2"
+                                test_ann_device_AB=np.empty(ann_size_AB,dtype=np.uint32)
+                                cuda.memcpy_dtoh(test_ann_device_AB,ann_device_AB)  
+                                print test_ann_device_AB[0:10]
+				print test_ann_device_AB[ann_size_AB-11:ann_size_AB-1]
+                                print "------------------------"
+                                test_ann_device_BA=np.empty(ann_size_BA,dtype=np.uint32)
+                                cuda.memcpy_dtoh(test_ann_device_BA,ann_device_BA)
+                                print test_ann_device_BA[0:10]
+		                print test_ann_device_BA[ann_size_BA-11:ann_size_BA-1]
+
+                                print "START END2"
+
+
 				ann_tmp.free()
 				
 			#normarlize two data
-			Ndata_A=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float).itemsize))
-			Ndata_AP=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float).itemsize))
+			Ndata_A=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float32).itemsize))
+			Ndata_AP=cuda.mem_alloc(data_A_size[curr_layer].channel*data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float32).itemsize))
 			response_A=cuda.mem_alloc(data_A_size[curr_layer].width*data_A_size[curr_layer].height*(np.dtype(np.float32).itemsize))
-			Ndata_B=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))	
+			Ndata_B=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float32).itemsize))	
 			Ndata_BP=cuda.mem_alloc(data_B_size[curr_layer].channel*data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))	
-			response_BP=cuda.mem_alloc(data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float).itemsize))
+			response_BP=cuda.mem_alloc(data_B_size[curr_layer].width*data_B_size[curr_layer].height*(np.dtype(np.float32).itemsize))
 				
 			norm(Ndata_A, data_A[curr_layer], response_A, data_A_size[curr_layer])		
 			norm(Ndata_BP, data_BP[curr_layer], response_BP, data_B_size[curr_layer])
@@ -400,11 +432,13 @@ class DeepAnalogy:
 			cuda.memcpy_dtoh(response1, response_A)
 			cuda.memcpy_dtoh(response2, response_BP)
 		
-                   	print response1.shape
-			print response1[0,0:10]
-			print response2.shape
-			print response2[0,0:10]
-	
+                   	# TEST
+		#	print "TEST START"
+		#	print response1.shape
+		#	print response1[0,0:10]
+		#	print response2.shape
+		#	print response2[0,0:10]
+		#	print "TEST END"
 			response_byte1=Cv_func.convertTo(response1,np.uint8,255)
 			response_byte2=Cv_func.convertTo(response2,np.uint8,255)
 			
@@ -562,12 +596,12 @@ class DeepAnalogy:
 		ann_tmp=cuda.mem_alloc(ann_size_AB * (np.dtype(np.uint).itemsize))
 		upSample_kernel=mod.get_function('upSample_kernel')
 		upSample_kernel(ann_device_AB, ann_tmp, params_device_AB, data_A_size[curr_layer - 1].width, data_A_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
-		cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * (np.dtype(np.uint).itemsize))
+		cuda.memcpy_dtod(ann_device_AB, ann_tmp, ann_size_AB * (np.dtype(np.uint32).itemsize))
 		ann_tmp.free()
 			
-		ann_tmp=cuda.mem_alloc(ann_size_BA * (np.dtype(np.uint).itemsize))
+		ann_tmp=cuda.mem_alloc(ann_size_BA * (np.dtype(np.uint32).itemsize))
 		upSample_kernel(ann_device_BA, ann_tmp, params_device_BA, data_B_size[curr_layer - 1].width, data_B_size[curr_layer - 1].height, block=threadsPerBlockAB, grid=blocksPerGridAB) #get new ann_device
-		cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * (np.dtype(np.uint).itemsize))
+		cuda.memcpy_dtod(ann_device_BA, ann_tmp, ann_size_BA * (np.dtype(np.uint32).itemsize))
 		ann_tmp.free()
 			
 		cuda.memcpy_dtoh(ann_host_AB, ann_device_AB)
