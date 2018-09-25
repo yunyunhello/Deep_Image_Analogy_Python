@@ -27,8 +27,9 @@ Software Enviroment(Google Cloud Platform):
 
 # Result
 <div align=center><img src="https://github.com/yunyunhello/caffe/blob/master/deep_image_analogy/example/result.png"/></div>
-Every two lines is a contrast combination. The first line is the result from original C version code, the second line is the result from my python code.  
-About Run Time: 70s(original program) VS 170s(my program)  
+
+Every two lines is a contrast combination. The first line is the result from original C version code, the second line is the result from my python code.    
+About Run Time: 70s(original program) VS 170s(my program)    
 From the result picture and running time, we can see that my code need improvement. 
 
 # Acknowledgments
