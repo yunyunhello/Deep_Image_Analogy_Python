@@ -8,13 +8,12 @@ It seems that this work is not so meaningful to the real world, but I regardeded
 
 Besides the technique skills, the soft skill -- problem solving was also trained through this project. I encountered a variety of problems and solved them one by one. For example, since this project needed a GPU to accelerate calculation while I did not have one and one NVIDIA GPU was quite expensive for me, but I did not give up and actively to seek a solution, and finally found Google Could Platform and rent a GPU(Tesla K80). These obstacles often appeared in my project, either big or small, I confronted them bravely.
 
-Note: For the consistence of my repo name, I name this project "caffe" temporarily. After I finish it, I will change it.
 In addition, I am a greener in github, if there is anything involved with your copyright, please tell me. I will delete it soon.
 Thanks a lot!
 
 # Enviroment
 Hardware Enviroment(Google Cloud Platfrom):  
-• n1-standard-4 (4 vCPUs, 15 GB memory);  
+• n1-standard-4 (4 vCPUs, 15 GB memory);  After
 • 1 NVIDIA Tesla K80 (12 GB memory);  
 • 50 GB disk.  
 
