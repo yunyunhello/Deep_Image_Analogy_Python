@@ -26,7 +26,7 @@ Software Enviroment(Google Cloud Platform):
 • openCV 3.0.
 
 # Result
-
+![result](https://github.com/yunyunhello/caffe/blob/master/deep_image_analogy/example/result.png)
 # Acknowledgments
 My codes acknowledge [Deep Image Analogy](https://github.com/msracver/Deep-Image-Analogy/tree/linux) and [caffe](http://caffe.berkeleyvision.org)
 
