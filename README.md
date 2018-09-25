@@ -13,21 +13,21 @@ In addition, I am a greener in github, if there is anything involved with your c
 Thanks a lot!
 
 # Enviroment
-Hardware Enviroment(Google Cloud Platfrom):< /br>
-• n1-standard-4 (4 vCPUs, 15 GB memory);< /br>
-• 1 NVIDIA Tesla K80 (12 GB memory);< /br>
-• 50 GB disk.< /br>
+Hardware Enviroment(Google Cloud Platfrom):  
+• n1-standard-4 (4 vCPUs, 15 GB memory);  
+• 1 NVIDIA Tesla K80 (12 GB memory);  
+• 50 GB disk.  
 
-Software Enviroment(Google Cloud Platform):< /br>
-• 64-bit Ubuntu 16.04 Operating System;< /br>
-• NVIDIA Driver 396.36 + CUDA Tllkit 9.2.88 + cuDNN v7.1.4 for CUDA9.2 + pycuda;< /br>
-• pycaffe;< /br>
-• python 2.7;< /br>
+Software Enviroment(Google Cloud Platform):  
+• 64-bit Ubuntu 16.04 Operating System;  
+• NVIDIA Driver 396.36 + CUDA Tllkit 9.2.88 + cuDNN v7.1.4 for CUDA9.2 + pycuda;  
+• pycaffe;  
+• python 2.7;  
 • openCV 3.0.
 
 # Result
 <div align=center><img src="https://github.com/yunyunhello/caffe/blob/master/deep_image_analogy/example/result.png"/></div>
-Every two lines is a contrast combination. The first line is the result from original C version code, the second line is the result from my python code. < /br>
+Every two lines is a contrast combination. The first line is the result from original C version code, the second line is the result from my python code.   
 About Run Time: 70s(original program) VS 170s(my program)
 From the result picture and running time, we can see that my code need improvement. 
 
