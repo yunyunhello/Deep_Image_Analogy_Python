@@ -19,7 +19,7 @@ Hardware Enviroment(Google Cloud Platfrom):
 
 Software Enviroment(Google Cloud Platform):  
 • 64-bit Ubuntu 16.04 Operating System;  
-• NVIDIA Driver 396.36 + CUDA Tllkit 9.2.88 + cuDNN v7.1.4 for CUDA9.2 + pycuda;  
+• NVIDIA Driver 396.36 + CUDA Toolkit 9.2.88 + cuDNN v7.1.4 for CUDA9.2 + pycuda;  
 • pycaffe;  
 • python 2.7;  
 • openCV 3.0.
