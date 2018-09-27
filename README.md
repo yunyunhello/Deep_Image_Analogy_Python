@@ -13,7 +13,7 @@ Thanks a lot!
 
 # Enviroment
 Hardware Enviroment(Google Cloud Platfrom):  
-• n1-standard-4 (4 vCPUs, 15 GB memory);  After
+• n1-standard-4 (4 vCPUs, 15 GB memory);  
 • 1 NVIDIA Tesla K80 (12 GB memory);  
 • 50 GB disk.  
 
